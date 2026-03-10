@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "flow.yaml": "c5e5bf6ac44471b3cd2d6252f239da6197be62fa1837bc2f932eab3a090cb12a"
+  },
+  "entrypoint": "flow.yaml",
+  "files": [
+    "flow.yaml"
+  ],
+  "mode": "llm-assisted",
+  "pipeline_id": "airflow_ops_mix",
+  "target": "kestra",
+  "target_version": "0.18"
+}

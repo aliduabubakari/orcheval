@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "pipeline.py": "1066c579df3be49ebf676562e634ff474cfc57365afb2c1d2c4f9890aeeb988c"
+  },
+  "entrypoint": "pipeline.py",
+  "files": [
+    "pipeline.py"
+  ],
+  "mode": "llm-assisted",
+  "pipeline_id": "kestra_ingest_notify",
+  "target": "airflow",
+  "target_version": "2.8"
+}

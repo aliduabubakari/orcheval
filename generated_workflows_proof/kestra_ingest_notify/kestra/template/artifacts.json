@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "flow.yaml": "f7e16f4a8dd33be20824fd6fd3b1cfa09f3d213cd65bdf375fa4bad372a0b745"
+  },
+  "entrypoint": "flow.yaml",
+  "files": [
+    "flow.yaml"
+  ],
+  "mode": "template",
+  "pipeline_id": "kestra_ingest_notify",
+  "target": "kestra",
+  "target_version": "0.18"
+}

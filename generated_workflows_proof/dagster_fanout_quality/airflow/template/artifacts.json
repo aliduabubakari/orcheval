@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "pipeline.py": "7055fe8f4a198d5559f5aa89cb06a8adc7025c280b9d781e39e4e0f25d5ec1a3"
+  },
+  "entrypoint": "pipeline.py",
+  "files": [
+    "pipeline.py"
+  ],
+  "mode": "template",
+  "pipeline_id": "dagster_fanout_quality",
+  "target": "airflow",
+  "target_version": "2.8"
+}

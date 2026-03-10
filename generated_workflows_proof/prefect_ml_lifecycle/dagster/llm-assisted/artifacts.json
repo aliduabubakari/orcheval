@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "definitions.py": "249a907b22808735fb512cf3466068a992c3a04f30fa65b2cf4b77645b58b10f"
+  },
+  "entrypoint": "definitions.py",
+  "files": [
+    "definitions.py"
+  ],
+  "mode": "llm-assisted",
+  "pipeline_id": "prefect_ml_lifecycle",
+  "target": "dagster",
+  "target_version": "1.8"
+}

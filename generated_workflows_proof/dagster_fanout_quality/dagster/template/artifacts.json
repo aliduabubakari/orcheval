@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "definitions.py": "6179f92a5afa9ca265e9e046af4fb86b98c3db555d38e93c8c6837746a65b390"
+  },
+  "entrypoint": "definitions.py",
+  "files": [
+    "definitions.py"
+  ],
+  "mode": "template",
+  "pipeline_id": "dagster_fanout_quality",
+  "target": "dagster",
+  "target_version": "1.8"
+}

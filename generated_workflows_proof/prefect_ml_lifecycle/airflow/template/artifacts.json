@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "pipeline.py": "2ed4d82ef72dcf1346ff25f2b531339951e7341ea9b5017dc72ecba2a7e46f70"
+  },
+  "entrypoint": "pipeline.py",
+  "files": [
+    "pipeline.py"
+  ],
+  "mode": "template",
+  "pipeline_id": "prefect_ml_lifecycle",
+  "target": "airflow",
+  "target_version": "2.8"
+}

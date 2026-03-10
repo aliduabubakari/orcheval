@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "flow.py": "f49c51f61c81da7bf2128f0c830f0a18572f48f054fc0e4d65c1e3fbcbd7e65d"
+  },
+  "entrypoint": "flow.py",
+  "files": [
+    "flow.py"
+  ],
+  "mode": "template",
+  "pipeline_id": "kestra_ingest_notify",
+  "target": "prefect",
+  "target_version": "3.x"
+}

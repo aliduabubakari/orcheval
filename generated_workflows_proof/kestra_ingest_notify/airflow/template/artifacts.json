@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "pipeline.py": "0b80c0ea5fd09a968466cf59313f48b7b2ca6caf189c03aae2deb093b0bd87dc"
+  },
+  "entrypoint": "pipeline.py",
+  "files": [
+    "pipeline.py"
+  ],
+  "mode": "template",
+  "pipeline_id": "kestra_ingest_notify",
+  "target": "airflow",
+  "target_version": "2.8"
+}

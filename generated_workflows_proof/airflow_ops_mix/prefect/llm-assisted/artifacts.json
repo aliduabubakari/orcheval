@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "flow.py": "d5394810b71f0b90f97a523ca0f888a9d05fe80f4cc8cb4a3912b5d991149cfc"
+  },
+  "entrypoint": "flow.py",
+  "files": [
+    "flow.py"
+  ],
+  "mode": "llm-assisted",
+  "pipeline_id": "airflow_ops_mix",
+  "target": "prefect",
+  "target_version": "3.x"
+}

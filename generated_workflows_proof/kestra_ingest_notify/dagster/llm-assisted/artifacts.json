@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "definitions.py": "525608bc60cc620157157fdbc2b225ff4f47a7b7764c94ffe3be5a7444ed895f"
+  },
+  "entrypoint": "definitions.py",
+  "files": [
+    "definitions.py"
+  ],
+  "mode": "llm-assisted",
+  "pipeline_id": "kestra_ingest_notify",
+  "target": "dagster",
+  "target_version": "1.8"
+}

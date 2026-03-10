@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "flow.yaml": "c2cb0487f21c8200770dcabde707e10d25a92f9baa36ba81991e118b85c05679"
+  },
+  "entrypoint": "flow.yaml",
+  "files": [
+    "flow.yaml"
+  ],
+  "mode": "llm-assisted",
+  "pipeline_id": "dagster_fanout_quality",
+  "target": "kestra",
+  "target_version": "0.18"
+}

@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "flow.py": "62d19b93951de244f37e136ebfd80e785170928e70e8df7e7da210cadf916bec"
+  },
+  "entrypoint": "flow.py",
+  "files": [
+    "flow.py"
+  ],
+  "mode": "llm-assisted",
+  "pipeline_id": "prefect_ml_lifecycle",
+  "target": "prefect",
+  "target_version": "3.x"
+}

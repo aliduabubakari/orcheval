@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "flow.yaml": "509d1495ad7f76b7881daecd1cfc5d5ff16d9775c5ca702c946b01d91e063ba9"
+  },
+  "entrypoint": "flow.yaml",
+  "files": [
+    "flow.yaml"
+  ],
+  "mode": "template",
+  "pipeline_id": "prefect_ml_lifecycle",
+  "target": "kestra",
+  "target_version": "0.18"
+}

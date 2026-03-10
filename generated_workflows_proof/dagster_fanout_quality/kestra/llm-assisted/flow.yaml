@@ -1,0 +1,27 @@
+id: dagster_fanout_quality
+namespace: opos.codegen
+tasks:
+- id: extract_source
+  type: io.kestra.plugin.scripts.python.Script
+  description: Extract Source
+- id: enrich_region_a
+  type: io.kestra.plugin.scripts.python.Script
+  description: Enrich Region A
+  dependsOn:
+  - extract_source
+- id: enrich_region_b
+  type: io.kestra.plugin.scripts.shell.Commands
+  description: Enrich Region B
+  dependsOn:
+  - extract_source
+- id: quality_gate
+  type: io.kestra.plugin.scripts.shell.Commands
+  description: Quality Gate
+  dependsOn:
+  - enrich_region_a
+  - enrich_region_b
+- id: publish_curated
+  type: io.kestra.plugin.jdbc.Query
+  description: Publish Curated
+  dependsOn:
+  - quality_gate

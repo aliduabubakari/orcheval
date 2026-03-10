@@ -1,0 +1,21 @@
+id: kestra_ingest_notify
+namespace: opos.codegen
+tasks:
+- id: poll_events
+  type: io.kestra.plugin.core.http.Request
+  description: Poll Events
+- id: stage_payload
+  type: io.kestra.plugin.scripts.shell.Commands
+  description: Stage Payload
+  dependsOn:
+  - poll_events
+- id: merge_events
+  type: io.kestra.plugin.jdbc.Query
+  description: Merge Events
+  dependsOn:
+  - stage_payload
+- id: notify_ops
+  type: io.kestra.plugin.notifications.mail.MailSend
+  description: Notify Ops
+  dependsOn:
+  - merge_events

@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "definitions.py": "90174e69dda152da09b5dddf77481a0ae3f1f039a89ca54861e69c75bd0fa8f1"
+  },
+  "entrypoint": "definitions.py",
+  "files": [
+    "definitions.py"
+  ],
+  "mode": "template",
+  "pipeline_id": "airflow_ops_mix",
+  "target": "dagster",
+  "target_version": "1.8"
+}

@@ -1,0 +1,16 @@
+id: airflow_ops_mix
+namespace: opos.codegen
+tasks:
+- id: ingest_api
+  type: io.kestra.plugin.core.http.Request
+  description: Ingest API
+- id: normalize_raw
+  type: io.kestra.plugin.scripts.shell.Commands
+  description: Normalize Raw
+  dependsOn:
+  - ingest_api
+- id: load_warehouse
+  type: io.kestra.plugin.jdbc.Query
+  description: Load Warehouse
+  dependsOn:
+  - normalize_raw

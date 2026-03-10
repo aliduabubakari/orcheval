@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "flow.py": "235d6e5db116d6106805fe8098df8dfb881280a1a0e7495377a5ead7634a1960"
+  },
+  "entrypoint": "flow.py",
+  "files": [
+    "flow.py"
+  ],
+  "mode": "template",
+  "pipeline_id": "airflow_ops_mix",
+  "target": "prefect",
+  "target_version": "3.x"
+}

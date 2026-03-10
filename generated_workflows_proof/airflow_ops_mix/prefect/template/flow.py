@@ -1,0 +1,22 @@
+from prefect import flow, task
+
+@task
+def ingest_api():
+    print("task ingest_api")
+
+@task
+def normalize_raw():
+    print("task normalize_raw")
+
+@task
+def load_warehouse():
+    print("task load_warehouse")
+
+@flow
+def airflow_ops_mix():
+    ingest_api_future = ingest_api.submit()
+    normalize_raw_future = normalize_raw.submit(wait_for=[ingest_api_future])
+    load_warehouse_future = load_warehouse.submit(wait_for=[normalize_raw_future])
+
+if __name__ == '__main__':
+    airflow_ops_mix()

@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orcheval"
+version = "0.1.0"
+description = "Static + dry-run evaluators for Airflow/Prefect/Dagster workflows (incl. eco/energy heuristics)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Your Lab/Org" }]
+dependencies = []
+
+[project.optional-dependencies]
+yaml = ["PyYAML>=6.0.1"]
+energy = ["codecarbon>=2.3.5"]  # only needed in orchestrator venvs if you enable carbon tracking
+dev = ["pytest>=8.0.0", "ruff>=0.6.0"]
+
+[project.scripts]
+orcheval-unified = "orcheval.unified_evaluator:main"
+orcheval-smoke   = "orcheval.import_smoke_test_cli:main"
+orcheval-pct     = "orcheval.platform_compliance.pct_cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

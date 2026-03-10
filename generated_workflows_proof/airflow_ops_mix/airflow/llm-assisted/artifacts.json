@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "pipeline.py": "c02e70fc8c9d8f95d4a1559148cbc9928268a097fca616ca39827b40205bee4c"
+  },
+  "entrypoint": "pipeline.py",
+  "files": [
+    "pipeline.py"
+  ],
+  "mode": "llm-assisted",
+  "pipeline_id": "airflow_ops_mix",
+  "target": "airflow",
+  "target_version": "2.8"
+}

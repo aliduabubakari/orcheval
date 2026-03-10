@@ -1,0 +1,484 @@
+{
+  "results": [
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "pipeline.py",
+      "errors": [],
+      "mode": "template",
+      "sample": "airflow_ops_mix.opos.yaml",
+      "target": "airflow",
+      "target_version": "2.8",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "pipeline.py",
+      "errors": [],
+      "mode": "llm-assisted",
+      "sample": "airflow_ops_mix.opos.yaml",
+      "target": "airflow",
+      "target_version": "2.8",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "flow.py",
+      "errors": [],
+      "mode": "template",
+      "sample": "airflow_ops_mix.opos.yaml",
+      "target": "prefect",
+      "target_version": "3.x",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "flow.py",
+      "errors": [],
+      "mode": "llm-assisted",
+      "sample": "airflow_ops_mix.opos.yaml",
+      "target": "prefect",
+      "target_version": "3.x",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "definitions.py",
+      "errors": [],
+      "mode": "template",
+      "sample": "airflow_ops_mix.opos.yaml",
+      "target": "dagster",
+      "target_version": "1.8",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "definitions.py",
+      "errors": [],
+      "mode": "llm-assisted",
+      "sample": "airflow_ops_mix.opos.yaml",
+      "target": "dagster",
+      "target_version": "1.8",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "yaml_structure"
+      ],
+      "entrypoint": "flow.yaml",
+      "errors": [],
+      "mode": "template",
+      "sample": "airflow_ops_mix.opos.yaml",
+      "target": "kestra",
+      "target_version": "0.18",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "yaml_structure"
+      ],
+      "entrypoint": "flow.yaml",
+      "errors": [],
+      "mode": "llm-assisted",
+      "sample": "airflow_ops_mix.opos.yaml",
+      "target": "kestra",
+      "target_version": "0.18",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "pipeline.py",
+      "errors": [],
+      "mode": "template",
+      "sample": "dagster_fanout_quality.opos.yaml",
+      "target": "airflow",
+      "target_version": "2.8",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "pipeline.py",
+      "errors": [],
+      "mode": "llm-assisted",
+      "sample": "dagster_fanout_quality.opos.yaml",
+      "target": "airflow",
+      "target_version": "2.8",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "flow.py",
+      "errors": [],
+      "mode": "template",
+      "sample": "dagster_fanout_quality.opos.yaml",
+      "target": "prefect",
+      "target_version": "3.x",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "flow.py",
+      "errors": [],
+      "mode": "llm-assisted",
+      "sample": "dagster_fanout_quality.opos.yaml",
+      "target": "prefect",
+      "target_version": "3.x",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "definitions.py",
+      "errors": [],
+      "mode": "template",
+      "sample": "dagster_fanout_quality.opos.yaml",
+      "target": "dagster",
+      "target_version": "1.8",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "definitions.py",
+      "errors": [],
+      "mode": "llm-assisted",
+      "sample": "dagster_fanout_quality.opos.yaml",
+      "target": "dagster",
+      "target_version": "1.8",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "yaml_structure"
+      ],
+      "entrypoint": "flow.yaml",
+      "errors": [],
+      "mode": "template",
+      "sample": "dagster_fanout_quality.opos.yaml",
+      "target": "kestra",
+      "target_version": "0.18",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "yaml_structure"
+      ],
+      "entrypoint": "flow.yaml",
+      "errors": [],
+      "mode": "llm-assisted",
+      "sample": "dagster_fanout_quality.opos.yaml",
+      "target": "kestra",
+      "target_version": "0.18",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "pipeline.py",
+      "errors": [],
+      "mode": "template",
+      "sample": "kestra_ingest_notify.opos.yaml",
+      "target": "airflow",
+      "target_version": "2.8",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "pipeline.py",
+      "errors": [],
+      "mode": "llm-assisted",
+      "sample": "kestra_ingest_notify.opos.yaml",
+      "target": "airflow",
+      "target_version": "2.8",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "flow.py",
+      "errors": [],
+      "mode": "template",
+      "sample": "kestra_ingest_notify.opos.yaml",
+      "target": "prefect",
+      "target_version": "3.x",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "flow.py",
+      "errors": [],
+      "mode": "llm-assisted",
+      "sample": "kestra_ingest_notify.opos.yaml",
+      "target": "prefect",
+      "target_version": "3.x",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "definitions.py",
+      "errors": [],
+      "mode": "template",
+      "sample": "kestra_ingest_notify.opos.yaml",
+      "target": "dagster",
+      "target_version": "1.8",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "definitions.py",
+      "errors": [],
+      "mode": "llm-assisted",
+      "sample": "kestra_ingest_notify.opos.yaml",
+      "target": "dagster",
+      "target_version": "1.8",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "yaml_structure"
+      ],
+      "entrypoint": "flow.yaml",
+      "errors": [],
+      "mode": "template",
+      "sample": "kestra_ingest_notify.opos.yaml",
+      "target": "kestra",
+      "target_version": "0.18",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "yaml_structure"
+      ],
+      "entrypoint": "flow.yaml",
+      "errors": [],
+      "mode": "llm-assisted",
+      "sample": "kestra_ingest_notify.opos.yaml",
+      "target": "kestra",
+      "target_version": "0.18",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "pipeline.py",
+      "errors": [],
+      "mode": "template",
+      "sample": "prefect_ml_lifecycle.opos.yaml",
+      "target": "airflow",
+      "target_version": "2.8",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "pipeline.py",
+      "errors": [],
+      "mode": "llm-assisted",
+      "sample": "prefect_ml_lifecycle.opos.yaml",
+      "target": "airflow",
+      "target_version": "2.8",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "flow.py",
+      "errors": [],
+      "mode": "template",
+      "sample": "prefect_ml_lifecycle.opos.yaml",
+      "target": "prefect",
+      "target_version": "3.x",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "flow.py",
+      "errors": [],
+      "mode": "llm-assisted",
+      "sample": "prefect_ml_lifecycle.opos.yaml",
+      "target": "prefect",
+      "target_version": "3.x",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "definitions.py",
+      "errors": [],
+      "mode": "template",
+      "sample": "prefect_ml_lifecycle.opos.yaml",
+      "target": "dagster",
+      "target_version": "1.8",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "python_syntax"
+      ],
+      "entrypoint": "definitions.py",
+      "errors": [],
+      "mode": "llm-assisted",
+      "sample": "prefect_ml_lifecycle.opos.yaml",
+      "target": "dagster",
+      "target_version": "1.8",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "yaml_structure"
+      ],
+      "entrypoint": "flow.yaml",
+      "errors": [],
+      "mode": "template",
+      "sample": "prefect_ml_lifecycle.opos.yaml",
+      "target": "kestra",
+      "target_version": "0.18",
+      "valid": true
+    },
+    {
+      "checks": [
+        "manifest_exists",
+        "manifest_keys",
+        "checksum_integrity",
+        "yaml_structure"
+      ],
+      "entrypoint": "flow.yaml",
+      "errors": [],
+      "mode": "llm-assisted",
+      "sample": "prefect_ml_lifecycle.opos.yaml",
+      "target": "kestra",
+      "target_version": "0.18",
+      "valid": true
+    }
+  ]
+}

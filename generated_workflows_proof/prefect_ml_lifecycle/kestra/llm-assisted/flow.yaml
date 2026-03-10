@@ -1,0 +1,21 @@
+id: prefect_ml_lifecycle
+namespace: opos.codegen
+tasks:
+- id: prepare_features
+  type: io.kestra.plugin.scripts.python.Script
+  description: Prepare Features
+- id: train_model
+  type: io.kestra.plugin.scripts.shell.Commands
+  description: Train Model
+  dependsOn:
+  - prepare_features
+- id: evaluate_model
+  type: io.kestra.plugin.scripts.python.Script
+  description: Evaluate Model
+  dependsOn:
+  - train_model
+- id: notify_release
+  type: io.kestra.plugin.notifications.mail.MailSend
+  description: Notify Release
+  dependsOn:
+  - evaluate_model

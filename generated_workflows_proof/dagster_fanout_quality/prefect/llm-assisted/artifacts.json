@@ -1,0 +1,13 @@
+{
+  "checksums": {
+    "flow.py": "69318a123ec03c667088bd4422446de41409442111f49ead310db68639038730"
+  },
+  "entrypoint": "flow.py",
+  "files": [
+    "flow.py"
+  ],
+  "mode": "llm-assisted",
+  "pipeline_id": "dagster_fanout_quality",
+  "target": "prefect",
+  "target_version": "3.x"
+}
