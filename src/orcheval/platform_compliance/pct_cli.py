@@ -22,9 +22,9 @@ import platform
 from datetime import datetime
 
 from ..base_evaluator import Orchestrator, BaseEvaluator
-from .platform_compliance.airflow_compliance import AirflowComplianceTester
-from .platform_compliance.prefect_compliance import PrefectComplianceTester
-from .platform_compliance.dagster_compliance import DagsterComplianceTester
+from .airflow_compliance import AirflowComplianceTester
+from .prefect_compliance import PrefectComplianceTester
+from .dagster_compliance import DagsterComplianceTester
 
 
 TESTERS = {

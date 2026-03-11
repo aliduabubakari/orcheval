@@ -27,7 +27,8 @@ from typing import Any, Dict, List, Optional
 def run_cli_json(
     *,
     python_exe: Path,
-    script_path: Path,
+    script_path: Optional[Path] = None,
+    module_name: Optional[str] = None,
     args: List[str],
     out_json: Path,
     cwd: Path,
@@ -38,14 +39,22 @@ def run_cli_json(
     file_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Runs: <python_exe> <script_path> <args...> and expects the CLI to write out_json.
+    Runs:
+      - <python_exe> <script_path> <args...> OR
+      - <python_exe> -m <module_name> <args...>
+    and expects the CLI to write out_json.
 
     Always returns a dict and always writes out_json (fallback stub if needed).
     """
     out_json = Path(out_json)
     out_json.parent.mkdir(parents=True, exist_ok=True)
 
-    cmd = [str(python_exe), str(script_path)] + list(args)
+    if module_name:
+        cmd = [str(python_exe), "-m", str(module_name)] + list(args)
+    elif script_path is not None:
+        cmd = [str(python_exe), str(script_path)] + list(args)
+    else:
+        raise ValueError("Either module_name or script_path must be provided")
 
     merged_env = os.environ.copy()
     if env:
@@ -100,6 +109,8 @@ def run_cli_json(
 
     payload["_subprocess"] = {
         "cmd": cmd,
+        "module_name": module_name,
+        "script_path": str(script_path) if script_path is not None else None,
         "cwd": str(cwd),
         "returncode": returncode,
         "timed_out": bool(timed_out),

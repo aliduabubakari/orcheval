@@ -15,12 +15,16 @@ dependencies = []
 [project.optional-dependencies]
 yaml = ["PyYAML>=6.0.1"]
 energy = ["codecarbon>=2.3.5"]  # only needed in orchestrator venvs if you enable carbon tracking
-dev = ["pytest>=8.0.0", "ruff>=0.6.0"]
+cli = ["typer>=0.12.0", "rich>=13.7.1"]
+sat = ["flake8>=7.0.0", "pylint>=3.0.0", "radon>=6.0.1", "bandit>=1.7.8"]
+dev = ["pytest>=8.0.0", "ruff>=0.6.0", "flake8>=7.0.0", "pylint>=3.0.0", "radon>=6.0.1", "bandit>=1.7.8"]
 
 [project.scripts]
 orcheval-unified = "orcheval.unified_evaluator:main"
 orcheval-smoke   = "orcheval.import_smoke_test_cli:main"
 orcheval-pct     = "orcheval.platform_compliance.pct_cli:main"
+orcheval-compare = "orcheval.dag_comparator:main"
+orcheval         = "orcheval.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

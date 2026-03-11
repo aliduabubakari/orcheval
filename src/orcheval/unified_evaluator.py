@@ -30,6 +30,10 @@ import os
 import json
 import logging
 import platform
+import subprocess
+import tempfile
+import time
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional, List, Tuple
@@ -40,6 +44,12 @@ from .subprocess_json_runner import run_cli_json
 
 
 UNIFIED_SCHEMA_VERSION = "2.0.0"
+
+ORCHESTRATOR_BASE_PACKAGES: Dict[Orchestrator, str] = {
+    Orchestrator.AIRFLOW: "apache-airflow",
+    Orchestrator.PREFECT: "prefect",
+    Orchestrator.DAGSTER: "dagster",
+}
 
 # Maps run_type strings (written by generators) to canonical strategy names
 # (written by the runner post-patch into generation_metadata.json).
@@ -79,6 +89,14 @@ def _safe_dict(x: Any) -> Dict[str, Any]:
 
 def _safe_list(x: Any) -> List[Any]:
     return x if isinstance(x, list) else []
+
+
+def _drop_none_values(d: Dict[str, Any]) -> Dict[str, Any]:
+    return {k: v for k, v in d.items() if v is not None}
+
+
+def _has_any_non_none(d: Dict[str, Any]) -> bool:
+    return any(v is not None for v in d.values())
 
 
 def _load_generation_metadata(code_file: Path) -> Optional[Dict[str, Any]]:
@@ -146,6 +164,123 @@ def _resolve_python_for_orchestrator(
         return _venv_python_from_dir(Path(os.environ[venv_env]))
 
     return None
+
+
+def _load_artifacts_json(code_file: Path) -> Optional[Dict[str, Any]]:
+    artifacts_path = code_file.parent / "artifacts.json"
+    if not artifacts_path.exists():
+        return None
+    try:
+        obj = json.loads(artifacts_path.read_text(encoding="utf-8"))
+        return obj if isinstance(obj, dict) else None
+    except Exception:
+        return None
+
+
+def _build_versioned_package_spec(package_name: str, target_version: Optional[str]) -> str:
+    v = (target_version or "").strip()
+    if not v:
+        return package_name
+
+    # examples:
+    # - 3.x -> package>=3,<4
+    # - 2.8 -> package~=2.8
+    # - 1.8.4 -> package==1.8.4
+    m_x = re.fullmatch(r"(\d+)\.x", v)
+    if m_x:
+        major = int(m_x.group(1))
+        return f"{package_name}>={major},<{major + 1}"
+
+    if re.fullmatch(r"\d+\.\d+", v):
+        return f"{package_name}~={v}"
+
+    if re.fullmatch(r"\d+\.\d+\.\d+", v):
+        return f"{package_name}=={v}"
+
+    return f"{package_name}=={v}"
+
+
+def _extract_artifact_dependency_specs(
+    artifacts_meta: Optional[Dict[str, Any]],
+    orchestrator: Orchestrator,
+) -> List[str]:
+    specs: List[str] = []
+    if not isinstance(artifacts_meta, dict):
+        return specs
+
+    base_name = ORCHESTRATOR_BASE_PACKAGES.get(orchestrator)
+    target_version = artifacts_meta.get("target_version")
+    if base_name:
+        specs.append(_build_versioned_package_spec(base_name, str(target_version) if target_version is not None else None))
+
+    for key in ("dependencies", "dependency_packages", "pip_dependencies", "requirements"):
+        raw = artifacts_meta.get(key)
+        if isinstance(raw, list):
+            for item in raw:
+                if isinstance(item, str) and item.strip():
+                    specs.append(item.strip())
+
+    # preserve order, de-duplicate
+    seen = set()
+    deduped: List[str] = []
+    for s in specs:
+        if s not in seen:
+            deduped.append(s)
+            seen.add(s)
+    return deduped
+
+
+def _run_logged_subprocess(
+    cmd: List[str],
+    *,
+    cwd: Path,
+    timeout_s: int,
+    tail_chars: int = 1200,
+    env: Optional[Dict[str, str]] = None,
+) -> Dict[str, Any]:
+    started = time.time()
+    merged_env = os.environ.copy()
+    if env:
+        merged_env.update({k: str(v) for k, v in env.items()})
+
+    timed_out = False
+    returncode = 0
+    stdout = ""
+    stderr = ""
+
+    try:
+        res = subprocess.run(
+            cmd,
+            cwd=str(cwd),
+            env=merged_env,
+            capture_output=True,
+            text=True,
+            timeout=int(timeout_s),
+            check=False,
+        )
+        returncode = int(res.returncode)
+        stdout = res.stdout or ""
+        stderr = res.stderr or ""
+    except subprocess.TimeoutExpired as e:
+        timed_out = True
+        returncode = -9
+        stdout = (e.stdout or "") if isinstance(e.stdout, str) else ""
+        stderr = (e.stderr or "") if isinstance(e.stderr, str) else ""
+    except Exception as e:
+        returncode = 1
+        stderr = f"{type(e).__name__}: {e}"
+
+    return {
+        "cmd": cmd,
+        "cwd": str(cwd),
+        "timeout_s": int(timeout_s),
+        "returncode": returncode,
+        "timed_out": timed_out,
+        "duration_s": round(time.time() - started, 4),
+        "stdout_tail": stdout[-int(tail_chars):],
+        "stderr_tail": stderr[-int(tail_chars):],
+        "ok": (returncode == 0 and not timed_out),
+    }
 
 
 def _summarize_token_usage(gen_meta: Optional[Dict[str, Any]]) -> Dict[str, Any]:
@@ -436,6 +571,18 @@ class UnifiedEvaluator:
         airflow_python: Optional[Path] = None,
         prefect_python: Optional[Path] = None,
         dagster_python: Optional[Path] = None,
+        dry_run_ephemeral_venv: bool = False,
+        dry_run_install_orcheval: bool = True,
+        dry_run_extra_packages: Optional[List[str]] = None,
+        dry_run_pip_timeout_s: int = 900,
+        dry_run_pip_constraint: Optional[Path] = None,
+        dry_run_capture_freeze: bool = False,
+        dry_run_log_tail_chars: int = 1200,
+        include_generation_context: bool = False,
+        track_carbon: bool = False,
+        carbon_country_iso: Optional[str] = None,
+        carbon_measure_power_secs: int = 1,
+        carbon_scale_factor: float = 1.0,
     ):
         self.config = config or {}
         self.intermediate_yaml = intermediate_yaml
@@ -453,6 +600,19 @@ class UnifiedEvaluator:
         self.airflow_python = airflow_python
         self.prefect_python = prefect_python
         self.dagster_python = dagster_python
+        self.dry_run_ephemeral_venv = bool(dry_run_ephemeral_venv)
+        self.dry_run_install_orcheval = bool(dry_run_install_orcheval)
+        self.dry_run_extra_packages = [p for p in (dry_run_extra_packages or []) if isinstance(p, str) and p.strip()]
+        self.dry_run_pip_timeout_s = int(dry_run_pip_timeout_s)
+        self.dry_run_pip_constraint = Path(dry_run_pip_constraint) if dry_run_pip_constraint else None
+        self.dry_run_capture_freeze = bool(dry_run_capture_freeze)
+        self.dry_run_log_tail_chars = int(dry_run_log_tail_chars)
+        self.include_generation_context = bool(include_generation_context)
+
+        self.track_carbon = bool(track_carbon)
+        self.carbon_country_iso = carbon_country_iso
+        self.carbon_measure_power_secs = int(carbon_measure_power_secs)
+        self.carbon_scale_factor = float(carbon_scale_factor)
 
         self.logger = logging.getLogger(self.__class__.__name__)
         self.static_analyzer = EnhancedStaticAnalyzer(self.config)
@@ -465,7 +625,9 @@ class UnifiedEvaluator:
         self.repo_root = Path(__file__).resolve().parents[2]
 
     def _artifact_root_for(self, code_file: Path) -> Path:
-        return self.artifacts_dir if self.artifacts_dir else code_file.parent
+        if self.artifacts_dir:
+            return self.artifacts_dir
+        return code_file.parent / "orcheval_reports"
 
     def _pct_out_path(self, code_file: Path, orch: Orchestrator) -> Path:
         root = self._artifact_root_for(code_file)
@@ -475,8 +637,133 @@ class UnifiedEvaluator:
         root = self._artifact_root_for(code_file)
         return root / (code_file.name + f".smoke_{orch.value}.json")
 
-    def _run_pct_subprocess(self, code_file: Path, orch: Orchestrator) -> Dict[str, Any]:
-        py = _resolve_python_for_orchestrator(
+    def _dependency_specs_for_dry_run(self, code_file: Path, orch: Orchestrator) -> List[str]:
+        artifacts_meta = _load_artifacts_json(code_file)
+        base_specs = _extract_artifact_dependency_specs(artifacts_meta, orch)
+        specs = base_specs + self.dry_run_extra_packages
+
+        deduped: List[str] = []
+        seen = set()
+        for spec in specs:
+            if spec and spec not in seen:
+                deduped.append(spec)
+                seen.add(spec)
+        return deduped
+
+    def _create_ephemeral_dry_run_env(self, code_file: Path, orch: Orchestrator) -> Dict[str, Any]:
+        tmp_handle = tempfile.TemporaryDirectory(prefix="orcheval_dryrun_")
+        base_dir = Path(tmp_handle.name)
+        venv_dir = base_dir / "venv"
+        python_exe = _venv_python_from_dir(venv_dir)
+        pip_cmd = [str(python_exe), "-m", "pip"]
+
+        payload: Dict[str, Any] = {
+            "enabled": True,
+            "ok": False,
+            "orchestrator": orch.value,
+            "base_dir": str(base_dir),
+            "venv_dir": str(venv_dir),
+            "python_exe": str(python_exe),
+            "install_orcheval": self.dry_run_install_orcheval,
+            "dependency_specs": [],
+            "pip_constraint": str(self.dry_run_pip_constraint) if self.dry_run_pip_constraint else None,
+            "capture_freeze": bool(self.dry_run_capture_freeze),
+            "log_tail_chars": int(self.dry_run_log_tail_chars),
+            "steps": [],
+            "_tmp_handle": tmp_handle,
+        }
+
+        steps = payload["steps"]
+        specs = self._dependency_specs_for_dry_run(code_file, orch)
+        payload["dependency_specs"] = specs
+        constraint_args: List[str] = []
+        if self.dry_run_pip_constraint:
+            constraint_path = Path(self.dry_run_pip_constraint).expanduser().resolve()
+            if not constraint_path.exists():
+                payload["error"] = "constraint_file_not_found"
+                payload["constraint_path"] = str(constraint_path)
+                return payload
+            payload["pip_constraint"] = str(constraint_path)
+            constraint_args = ["-c", str(constraint_path)]
+
+        create_step = _run_logged_subprocess(
+            [sys.executable, "-m", "venv", str(venv_dir)],
+            cwd=self.repo_root,
+            timeout_s=self.dry_run_pip_timeout_s,
+            tail_chars=self.dry_run_log_tail_chars,
+        )
+        steps.append({"name": "create_venv", **create_step})
+        if not create_step["ok"] or not python_exe.exists():
+            payload["error"] = "create_venv_failed"
+            return payload
+
+        upgrade_step = _run_logged_subprocess(
+            pip_cmd + ["install", "--upgrade", "pip", "setuptools", "wheel"],
+            cwd=self.repo_root,
+            timeout_s=self.dry_run_pip_timeout_s,
+            tail_chars=self.dry_run_log_tail_chars,
+        )
+        steps.append({"name": "upgrade_pip", **upgrade_step})
+        if not upgrade_step["ok"]:
+            payload["error"] = "bootstrap_pip_failed"
+            return payload
+
+        if self.dry_run_install_orcheval:
+            install_self = _run_logged_subprocess(
+                pip_cmd + ["install"] + constraint_args + ["-e", str(self.repo_root)],
+                cwd=self.repo_root,
+                timeout_s=self.dry_run_pip_timeout_s,
+                tail_chars=self.dry_run_log_tail_chars,
+            )
+            steps.append({"name": "install_orcheval", **install_self})
+            if not install_self["ok"]:
+                payload["error"] = "install_orcheval_failed"
+                return payload
+
+        if specs:
+            install_specs = _run_logged_subprocess(
+                pip_cmd + ["install"] + constraint_args + specs,
+                cwd=self.repo_root,
+                timeout_s=self.dry_run_pip_timeout_s,
+                tail_chars=self.dry_run_log_tail_chars,
+            )
+            steps.append({"name": "install_dependencies", **install_specs})
+            if not install_specs["ok"]:
+                payload["error"] = "install_dependencies_failed"
+                return payload
+
+        if self.dry_run_capture_freeze:
+            freeze_step = _run_logged_subprocess(
+                pip_cmd + ["freeze"],
+                cwd=self.repo_root,
+                timeout_s=self.dry_run_pip_timeout_s,
+                tail_chars=self.dry_run_log_tail_chars,
+            )
+            steps.append({"name": "pip_freeze", **freeze_step})
+        payload["ok"] = True
+        return payload
+
+    def _cleanup_ephemeral_dry_run_env(self, payload: Optional[Dict[str, Any]]) -> None:
+        if not isinstance(payload, dict):
+            return
+        tmp_handle = payload.pop("_tmp_handle", None)
+        if tmp_handle is None:
+            return
+        try:
+            tmp_handle.cleanup()
+            payload["cleaned_up"] = True
+        except Exception as e:
+            payload["cleaned_up"] = False
+            payload["cleanup_error"] = f"{type(e).__name__}: {e}"
+
+    def _run_pct_subprocess(
+        self,
+        code_file: Path,
+        orch: Orchestrator,
+        *,
+        python_override: Optional[Path] = None,
+    ) -> Dict[str, Any]:
+        py = Path(python_override) if python_override is not None else _resolve_python_for_orchestrator(
             orch,
             airflow_venv=self.airflow_venv,
             prefect_venv=self.prefect_venv,
@@ -507,10 +794,9 @@ class UnifiedEvaluator:
             return _ensure_eval_payload_shape(payload, kind="PCT")
 
         out_json = self._pct_out_path(code_file, orch)
-        script = self.repo_root / "scripts" / "evaluators" / "platform_compliance" / "pct_cli.py"
 
         env = {
-            "PYTHONPATH": str(self.repo_root / "scripts"),
+            "PYTHONPATH": str(self.repo_root / "src"),
             "AIRFLOW_HOME": str(self.repo_root / ".airflow_home_eval"),
             "DAGSTER_HOME": str(self.repo_root / ".dagster_home_eval"),
             "PREFECT_HOME": str(self.repo_root / ".prefect_home_eval"),
@@ -518,7 +804,7 @@ class UnifiedEvaluator:
 
         payload = run_cli_json(
             python_exe=Path(py),
-            script_path=script,
+            module_name="orcheval.platform_compliance.pct_cli",
             args=[str(code_file), "--orchestrator", orch.value, "--out", str(out_json)],
             out_json=out_json,
             cwd=self.repo_root,
@@ -530,8 +816,14 @@ class UnifiedEvaluator:
         )
         return _ensure_eval_payload_shape(payload, kind="PCT")
 
-    def _run_smoke_subprocess(self, code_file: Path, orch: Orchestrator) -> Dict[str, Any]:
-        py = _resolve_python_for_orchestrator(
+    def _run_smoke_subprocess(
+        self,
+        code_file: Path,
+        orch: Orchestrator,
+        *,
+        python_override: Optional[Path] = None,
+    ) -> Dict[str, Any]:
+        py = Path(python_override) if python_override is not None else _resolve_python_for_orchestrator(
             orch,
             airflow_venv=self.airflow_venv,
             prefect_venv=self.prefect_venv,
@@ -558,20 +850,27 @@ class UnifiedEvaluator:
             }
 
         out_json = self._smoke_out_path(code_file, orch)
-        script = self.repo_root / "scripts" / "evaluators" / "import_smoke_test_cli.py"
 
         env = {
-            "PYTHONPATH": str(self.repo_root / "scripts"),
+            "PYTHONPATH": str(self.repo_root / "src"),
             "PIPELINE_SMOKE_TEST": "1",
             "AIRFLOW_HOME": str(self.repo_root / ".airflow_home_eval"),
             "DAGSTER_HOME": str(self.repo_root / ".dagster_home_eval"),
             "PREFECT_HOME": str(self.repo_root / ".prefect_home_eval"),
         }
 
+        args = [str(code_file), "--orchestrator", orch.value, "--out", str(out_json)]
+        if self.track_carbon:
+            args.append("--track-carbon")
+        if self.carbon_country_iso:
+            args.extend(["--carbon-country-iso", str(self.carbon_country_iso)])
+        args.extend(["--carbon-measure-power-secs", str(self.carbon_measure_power_secs)])
+        args.extend(["--carbon-scale-factor", str(self.carbon_scale_factor)])
+
         payload = run_cli_json(
             python_exe=Path(py),
-            script_path=script,
-            args=[str(code_file), "--orchestrator", orch.value, "--out", str(out_json)],
+            module_name="orcheval.import_smoke_test_cli",
+            args=args,
             out_json=out_json,
             cwd=self.repo_root,
             env=env,
@@ -643,9 +942,77 @@ class UnifiedEvaluator:
             if target_orchestrator is None:
                 target_orchestrator = Orchestrator.UNKNOWN
 
-            # Run venv subprocess evaluators
-            smoke_payload = self._run_smoke_subprocess(code_file, target_orchestrator)
-            pct_payload   = self._run_pct_subprocess(code_file, target_orchestrator)
+            dry_run_env_meta: Optional[Dict[str, Any]] = None
+            python_override: Optional[Path] = None
+            dry_run_error: Optional[str] = None
+
+            if self.dry_run_ephemeral_venv:
+                if target_orchestrator in (Orchestrator.AIRFLOW, Orchestrator.PREFECT, Orchestrator.DAGSTER):
+                    dry_run_env_meta = self._create_ephemeral_dry_run_env(code_file, target_orchestrator)
+                    if bool(dry_run_env_meta.get("ok", False)):
+                        python_override = Path(str(dry_run_env_meta.get("python_exe")))
+                    else:
+                        dry_run_error = str(dry_run_env_meta.get("error") or "dry_run_env_setup_failed")
+                else:
+                    dry_run_env_meta = {
+                        "enabled": True,
+                        "ok": False,
+                        "orchestrator": target_orchestrator.value,
+                        "error": "unsupported_orchestrator_for_dry_run_venv",
+                    }
+                    dry_run_error = str(dry_run_env_meta["error"])
+            else:
+                dry_run_env_meta = {"enabled": False}
+
+            try:
+                if dry_run_error:
+                    smoke_payload = {
+                        "evaluation_type": "import_smoke_test",
+                        "file_path": str(code_file),
+                        "orchestrator": target_orchestrator.value,
+                        "timestamp": datetime.now().isoformat(),
+                        "ok": False,
+                        "stages": {"compile_ok": False, "import_exec_ok": False},
+                        "metadata": {"error": "dry_run_env_setup_failed"},
+                        "error": {
+                            "stage": "controller",
+                            "error_type": "DryRunEnvSetupFailed",
+                            "message": dry_run_error,
+                            "traceback": None,
+                        },
+                    }
+                    pct_payload = _ensure_eval_payload_shape({
+                        "evaluation_type": "platform_compliance",
+                        "file_path": str(code_file),
+                        "orchestrator": target_orchestrator.value,
+                        "timestamp": datetime.now().isoformat(),
+                        "gates_passed": False,
+                        "gate_checks": [],
+                        "metadata": {"PCT": 0.0, "error": "dry_run_env_setup_failed"},
+                        "scores": {},
+                        "issues": [{
+                            "severity": "critical",
+                            "category": "env",
+                            "message": f"Dry-run environment setup failed: {dry_run_error}",
+                            "line": None,
+                            "tool": "unified_evaluator",
+                            "details": {},
+                        }],
+                    }, kind="PCT")
+                else:
+                    smoke_payload = self._run_smoke_subprocess(
+                        code_file,
+                        target_orchestrator,
+                        python_override=python_override,
+                    )
+                    pct_payload = self._run_pct_subprocess(
+                        code_file,
+                        target_orchestrator,
+                        python_override=python_override,
+                    )
+            finally:
+                if self.dry_run_ephemeral_venv:
+                    self._cleanup_ephemeral_dry_run_env(dry_run_env_meta)
 
             # Ensure SAT payload has issues + issue_summary + overall_score
             sat_payload = static_result.to_dict()
@@ -674,7 +1041,7 @@ class UnifiedEvaluator:
             paper_issues = sat_issues + pct_issues
             error_events = _extract_error_events(smoke_payload, pct_payload)
 
-            unified = {
+            unified: Dict[str, Any] = {
                 "schema_version": UNIFIED_SCHEMA_VERSION,
 
                 "file_path":             str(code_file),
@@ -682,13 +1049,6 @@ class UnifiedEvaluator:
                 "evaluation_timestamp":  datetime.now().isoformat(),
                 "alpha":                 float(self.alpha),
                 "yaml_valid":            yaml_gate_ok,
-
-                # Self-contained run context (now includes strategy + extra_repetition_mode)
-                "run_context": run_context,
-                "generation": {
-                    "token_usage_summary":  token_summary,
-                    "generation_metadata":  gen_meta,
-                },
 
                 "static_analysis":    _ensure_eval_payload_shape(sat_payload, kind="SAT"),
                 "import_smoke":       smoke_payload,
@@ -728,22 +1088,33 @@ class UnifiedEvaluator:
                         "repo_root":              str(self.repo_root),
                         "artifacts_dir":          str(self._artifact_root_for(code_file)),
                         "pct_mode":               self.pct_mode,
+                        "dry_run_ephemeral_venv": bool(self.dry_run_ephemeral_venv),
+                        "dry_run_env":            dry_run_env_meta,
                     }
                 }
             }
+            if self.include_generation_context:
+                run_ctx = _drop_none_values(run_context)
+                generation_payload = {
+                    "token_usage_summary": _drop_none_values(token_summary),
+                    "generation_metadata": gen_meta,
+                }
+                # include only if it has meaningful content
+                if run_ctx:
+                    unified["run_context"] = run_ctx
+                if generation_payload["generation_metadata"] is not None or generation_payload["token_usage_summary"]:
+                    unified["generation"] = generation_payload
             return unified
 
         except Exception as e:
             self.logger.exception(f"UnifiedEvaluator crashed: {e}")
-            return {
+            payload = {
                 "schema_version":        UNIFIED_SCHEMA_VERSION,
                 "file_path":             str(file_path),
                 "orchestrator":          "unknown",
                 "evaluation_timestamp":  datetime.now().isoformat(),
                 "alpha":                 float(self.alpha),
                 "yaml_valid":            True if self.yaml_valid is None else bool(self.yaml_valid),
-                "run_context":           {},
-                "generation":            {},
                 "static_analysis":       None,
                 "import_smoke":          None,
                 "platform_compliance":   None,
@@ -772,6 +1143,10 @@ class UnifiedEvaluator:
                 },
                 "error": {"stage": "unified_evaluator", "message": str(e), "error_type": type(e).__name__},
             }
+            if self.include_generation_context:
+                payload["run_context"] = {}
+                payload["generation"] = {}
+            return payload
 
 
 def main():
@@ -792,23 +1167,41 @@ def main():
     parser.add_argument("--prefect-python", default=None)
     parser.add_argument("--dagster-python", default=None)
 
-    parser.add_argument("--artifacts-dir",  default=None)
+    parser.add_argument("--reports-dir", default=None, help="Directory for smoke/PCT report artifacts (default: <workflow_dir>/orcheval_reports)")
+    parser.add_argument("--artifacts-dir", default=None, help="Backward-compatible alias for --reports-dir")
+    parser.add_argument("--out-dir", default=None, help="Directory for unified JSON report output")
+
+    parser.add_argument("--dry-run-ephemeral-venv", action="store_true", help="Create temp venv, install deps, run checks, then discard")
+    parser.add_argument("--dry-run-extra-package", action="append", default=[], help="Additional package spec to install into dry-run venv (repeatable)")
+    parser.add_argument("--dry-run-pip-timeout-s", type=int, default=900, help="pip/venv setup timeout in seconds")
+    parser.add_argument("--dry-run-pip-constraint", default=None, help="Path to pip constraints file used for dry-run installs")
+    parser.add_argument("--dry-run-capture-freeze", action="store_true", help="Capture pip freeze output in dry-run metadata")
+    parser.add_argument("--dry-run-log-tail-chars", type=int, default=1200, help="Per-step stdout/stderr tail length recorded in dry-run metadata")
+    parser.add_argument("--no-dry-run-install-orcheval", action="store_true", help="Do not install local orcheval package in dry-run venv")
+    parser.add_argument("--include-generation-context", action="store_true", help="Include run_context/generation blocks in unified JSON")
+
+    parser.add_argument("--track-carbon", action="store_true", help="Enable CodeCarbon during smoke import stage")
+    parser.add_argument("--carbon-country-iso", default=None, help="ISO3 country code for offline carbon intensity")
+    parser.add_argument("--carbon-measure-power-secs", type=int, default=1)
+    parser.add_argument("--carbon-scale-factor", type=float, default=1.0, help="Scale import-stage measurement to realistic runtime proxy")
+
     parser.add_argument("--pct-timeout-s",  type=int, default=120)
     parser.add_argument("--smoke-timeout-s", type=int, default=60)
 
-    parser.add_argument("--out",       default=None)
-    parser.add_argument("--stdout",    action="store_true")
+    parser.add_argument("--out", default=None, help="Write unified JSON to exact path")
+    parser.add_argument("--stdout", action="store_true", help="Print JSON to stdout instead of writing default file")
     parser.add_argument("--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"])
     args = parser.parse_args()
 
     logging.basicConfig(level=getattr(logging, args.log_level), format="%(levelname)s - %(message)s")
 
     yaml_valid = None if args.yaml_valid == "none" else (args.yaml_valid == "true")
+    report_root = args.reports_dir or args.artifacts_dir
 
     ue = UnifiedEvaluator(
         alpha=args.alpha,
         yaml_valid=yaml_valid,
-        artifacts_dir=Path(args.artifacts_dir) if args.artifacts_dir else None,
+        artifacts_dir=Path(report_root) if report_root else None,
         pct_timeout_s=args.pct_timeout_s,
         smoke_timeout_s=args.smoke_timeout_s,
         airflow_venv=Path(args.airflow_venv) if args.airflow_venv else None,
@@ -817,6 +1210,18 @@ def main():
         airflow_python=Path(args.airflow_python) if args.airflow_python else None,
         prefect_python=Path(args.prefect_python) if args.prefect_python else None,
         dagster_python=Path(args.dagster_python) if args.dagster_python else None,
+        dry_run_ephemeral_venv=bool(args.dry_run_ephemeral_venv),
+        dry_run_install_orcheval=not bool(args.no_dry_run_install_orcheval),
+        dry_run_extra_packages=list(args.dry_run_extra_package or []),
+        dry_run_pip_timeout_s=int(args.dry_run_pip_timeout_s),
+        dry_run_pip_constraint=Path(args.dry_run_pip_constraint) if args.dry_run_pip_constraint else None,
+        dry_run_capture_freeze=bool(args.dry_run_capture_freeze),
+        dry_run_log_tail_chars=int(args.dry_run_log_tail_chars),
+        include_generation_context=bool(args.include_generation_context),
+        track_carbon=bool(args.track_carbon),
+        carbon_country_iso=args.carbon_country_iso,
+        carbon_measure_power_secs=int(args.carbon_measure_power_secs),
+        carbon_scale_factor=float(args.carbon_scale_factor),
     )
 
     orch = None if args.orchestrator == "auto" else Orchestrator(args.orchestrator)
@@ -831,8 +1236,16 @@ def main():
         print(f"Wrote: {out_path}")
         return
 
-    if args.stdout or not args.out:
+    if args.stdout:
         print(txt)
+        return
+
+    out_root = Path(args.out_dir) if args.out_dir else (Path(report_root) if report_root else (Path(args.file).parent / "orcheval_reports"))
+    out_root.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    out_path = out_root / f"{Path(args.file).stem}.unified_{payload.get('orchestrator', 'unknown')}_{ts}.json"
+    out_path.write_text(txt, encoding="utf-8")
+    print(f"Wrote: {out_path}")
 
 
 if __name__ == "__main__":

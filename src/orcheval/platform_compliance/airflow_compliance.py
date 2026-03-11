@@ -20,7 +20,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-from .base_evaluator import (
+from ..base_evaluator import (
     EvaluationScore,
     Issue,
     Severity,

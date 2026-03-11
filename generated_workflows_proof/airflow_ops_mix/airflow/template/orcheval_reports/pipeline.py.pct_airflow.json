@@ -1,0 +1,258 @@
+{
+  "evaluation_type": "platform_compliance",
+  "file_path": "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
+  "orchestrator": "airflow",
+  "timestamp": "2026-03-10T23:31:11.484040",
+  "metadata": {
+    "file_size_bytes": 731,
+    "line_count": 16,
+    "PCT": 8.6,
+    "platform_gate_passed": true,
+    "Passed": true,
+    "PCT_dimensions": {
+      "loadability": 9.5,
+      "structure_validity": 10.0,
+      "configuration_validity": 6.5,
+      "task_validity": 7.5,
+      "executability": 9.5
+    }
+  },
+  "gates_passed": true,
+  "gate_checks": [
+    {
+      "name": "syntax_valid",
+      "passed": true,
+      "message": "Code has valid Python syntax",
+      "is_critical": true,
+      "details": {}
+    },
+    {
+      "name": "minimum_structure",
+      "passed": true,
+      "message": "Has minimum pipeline structure",
+      "is_critical": true,
+      "details": {}
+    },
+    {
+      "name": "critical_imports",
+      "passed": true,
+      "message": "Found 4 imports",
+      "is_critical": true,
+      "details": {}
+    }
+  ],
+  "scores": {
+    "loadability": {
+      "name": "loadability",
+      "raw_score": 9.5,
+      "weight": 1.0,
+      "penalties_applied": 0.0,
+      "error": null,
+      "details": {
+        "imports": {
+          "total_imports": 2,
+          "standard_lib": 1,
+          "third_party": 1
+        },
+        "platform_load": {
+          "airflow_available": true,
+          "airflow_version": "2.11.1",
+          "module_loadable": true,
+          "dags_found": [
+            "dag"
+          ],
+          "tasks_found": [
+            "task_0",
+            "task_1",
+            "task_2"
+          ],
+          "python_executable": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/bin/python",
+          "python_version": "3.10.18",
+          "sys_path_head": [
+            "/Users/abubakarialidu/orcheval",
+            "/Users/abubakarialidu/orcheval/src",
+            "/Users/abubakarialidu/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python310.zip",
+            "/Users/abubakarialidu/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python3.10",
+            "/Users/abubakarialidu/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python3.10/lib-dynload",
+            "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/lib/python3.10/site-packages",
+            "/Users/abubakarialidu/orcheval/.airflow_home_eval/config",
+            "/Users/abubakarialidu/orcheval/.airflow_home_eval/plugins",
+            "/Users/abubakarialidu/orcheval/.airflow_home_eval/dags"
+          ],
+          "temp_module_path": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/tmplldo2ao7.py",
+          "exception": null
+        },
+        "module_structure": {
+          "has_functions": true,
+          "has_classes": false,
+          "function_count": 2,
+          "class_count": 0,
+          "has_main_guard": false
+        },
+        "_safe_dimension_eval": {
+          "ok": true
+        }
+      },
+      "issues": []
+    },
+    "structure_validity": {
+      "name": "structure_validity",
+      "raw_score": 10.0,
+      "weight": 1.0,
+      "penalties_applied": 0.0,
+      "error": null,
+      "details": {
+        "constructs": {
+          "has_dag_definition": true,
+          "has_tasks": true,
+          "dag_count": 1,
+          "task_count": 3,
+          "uses_context_manager": true,
+          "uses_taskflow": false
+        },
+        "dependency_graph": {
+          "has_dependencies": true,
+          "dependency_count": 2
+        },
+        "orphan_check": {
+          "task_count": 3,
+          "orphan_count": 0
+        },
+        "_safe_dimension_eval": {
+          "ok": true
+        }
+      },
+      "issues": []
+    },
+    "configuration_validity": {
+      "name": "configuration_validity",
+      "raw_score": 6.5,
+      "weight": 1.0,
+      "penalties_applied": 0.0,
+      "error": null,
+      "details": {
+        "schedule": {
+          "has_schedule": true,
+          "schedule_type": "custom",
+          "has_start_date": true,
+          "has_catchup": true
+        },
+        "default_args": {
+          "has_default_args": false,
+          "has_owner": false,
+          "has_retries": false,
+          "has_retry_delay": false,
+          "has_email_config": false
+        },
+        "connections": {
+          "connection_count": 0,
+          "has_connections": false
+        },
+        "security": {
+          "hardcoded_secrets": false,
+          "uses_env_vars": false
+        },
+        "_safe_dimension_eval": {
+          "ok": true
+        }
+      },
+      "issues": [
+        {
+          "severity": "minor",
+          "category": "configuration",
+          "message": "No default_args defined",
+          "line": null,
+          "tool": null,
+          "details": {}
+        }
+      ]
+    },
+    "task_validity": {
+      "name": "task_validity",
+      "raw_score": 7.5,
+      "weight": 1.0,
+      "penalties_applied": 0.0,
+      "error": null,
+      "details": {
+        "definitions": {
+          "operator_count": 3,
+          "taskflow_count": 0,
+          "has_task_ids": true,
+          "has_python_callable": true
+        },
+        "operator_usage": {
+          "operator_types": [
+            "PythonOperator",
+            "BashOperator"
+          ],
+          "has_proper_imports": true,
+          "uses_standard_operators": true
+        },
+        "parameters": {
+          "has_task_ids": true,
+          "has_retries": false,
+          "has_timeouts": false
+        },
+        "_safe_dimension_eval": {
+          "ok": true
+        }
+      },
+      "issues": []
+    },
+    "executability": {
+      "name": "executability",
+      "raw_score": 9.5,
+      "weight": 1.0,
+      "penalties_applied": 0.0,
+      "error": null,
+      "details": {
+        "dryrun": {
+          "airflow_available": true,
+          "can_test": true,
+          "has_test_mode": false
+        },
+        "runtime_safety": {
+          "bare_except_count": 0
+        },
+        "external_deps": {
+          "requires_docker": false,
+          "requires_network": false,
+          "requires_filesystem": false
+        },
+        "_safe_dimension_eval": {
+          "ok": true
+        }
+      },
+      "issues": []
+    }
+  },
+  "issues": [
+    {
+      "severity": "minor",
+      "category": "configuration",
+      "message": "No default_args defined",
+      "line": null,
+      "tool": null,
+      "details": {}
+    }
+  ],
+  "_subprocess": {
+    "cmd": [
+      "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/bin/python",
+      "-m",
+      "orcheval.platform_compliance.pct_cli",
+      "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
+      "--orchestrator",
+      "airflow",
+      "--out",
+      "generated_workflows_proof/airflow_ops_mix/airflow/template/orcheval_reports/pipeline.py.pct_airflow.json"
+    ],
+    "module_name": "orcheval.platform_compliance.pct_cli",
+    "script_path": null,
+    "cwd": "/Users/abubakarialidu/orcheval",
+    "returncode": 0,
+    "timed_out": false,
+    "stdout_tail": "[2026-03-10T23:31:11.483+0100] {pct_base.py:120} INFO - Running PCT (penalty-free) for airflow: generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py\nWrote: generated_workflows_proof/airflow_ops_mix/airflow/template/orcheval_reports/pipeline.py.pct_airflow.json\n",
+    "stderr_tail": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/lib/python3.10/site-packages/airflow/metrics/base_stats_logger.py:22 RemovedInAirflow3Warning: Timer and timing metrics publish in seconds were deprecated. It is enabled by default from Airflow 3 onwards. Enable timer_unit_consistency to publish all the timer and timing metrics in milliseconds.\n/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/lib/python3.10/site-packages/airflow/triggers/base.py:27 RemovedInAirflow3Warning: Timer and timing metrics publish in seconds were deprecated. It is enabled by default from Airflow 3 onwards. Enable timer_unit_consistency to publish all the timer and timing metrics in milliseconds.\n"
+  }
+}

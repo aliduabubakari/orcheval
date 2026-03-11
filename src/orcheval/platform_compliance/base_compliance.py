@@ -14,7 +14,7 @@ import re
 import sys
 import tempfile
 
-from .base_evaluator import (
+from ..base_evaluator import (
     BaseEvaluator,
     EvaluationResult,
     EvaluationScore,
@@ -22,7 +22,6 @@ from .base_evaluator import (
     Issue,
     Severity,
     Orchestrator,
-    DEFAULT_PENALTIES,
 )
 
 

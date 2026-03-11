@@ -26,13 +26,15 @@ import py_compile
 import importlib.util
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict
 
 # bootstrap (so we can reuse orchestrator detection)
 SCRIPTS_DIR = Path(__file__).resolve().parents[1]  # .../scripts
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
-from ..base_evaluator import BaseEvaluator, Orchestrator  # noqa: E402
+from .base_evaluator import BaseEvaluator, Orchestrator  # noqa: E402
+from .energy.carbon_tracker import try_start_tracker, try_stop_tracker  # noqa: E402
 
 
 def _emit(payload: dict, out: str | None) -> None:
@@ -45,6 +47,33 @@ def _emit(payload: dict, out: str | None) -> None:
         print(txt)
 
 
+def _apply_carbon_scaling(energy_payload: Dict[str, Any], scale_factor: float) -> Dict[str, Any]:
+    scaled = dict(energy_payload)
+    sf = float(scale_factor)
+
+    measured_kwh = energy_payload.get("energy_consumed_kwh")
+    measured_kg = energy_payload.get("emissions_kgco2eq")
+
+    scaled["scaling"] = {
+        "scale_factor": sf,
+        "scaling_applied": bool(sf != 1.0),
+        "scale_note": (
+            "Scaled values approximate larger runtime impact from import-time measurements."
+            if sf != 1.0
+            else "No scaling applied."
+        ),
+    }
+
+    if isinstance(measured_kwh, (int, float)):
+        scaled["measured_energy_consumed_kwh"] = float(measured_kwh)
+        scaled["scaled_energy_consumed_kwh"] = float(measured_kwh) * sf
+    if isinstance(measured_kg, (int, float)):
+        scaled["measured_emissions_kgco2eq"] = float(measured_kg)
+        scaled["scaled_emissions_kgco2eq"] = float(measured_kg) * sf
+
+    return scaled
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Compile + import smoke test for generated workflow code.")
     ap.add_argument("file", help="Path to generated workflow Python file")
@@ -55,6 +84,16 @@ def main() -> None:
         help="Orchestrator label (for reporting only). Default auto-detect from code.",
     )
     ap.add_argument("--out", default=None, help="Write JSON to this file; otherwise print to stdout")
+    ap.add_argument("--out-dir", default=None, help="Write JSON to this directory (auto filename)")
+    ap.add_argument("--track-carbon", action="store_true", help="Enable CodeCarbon measurement during import stage")
+    ap.add_argument("--carbon-country-iso", default=None, help="ISO3 country code for offline carbon intensity (e.g. ITA, USA)")
+    ap.add_argument("--carbon-measure-power-secs", type=int, default=1, help="CodeCarbon measure_power_secs")
+    ap.add_argument(
+        "--carbon-scale-factor",
+        type=float,
+        default=1.0,
+        help="Scale measured import-stage carbon/energy by this multiplier and report both measured and scaled values",
+    )
     args = ap.parse_args()
 
     file_path = Path(args.file)
@@ -70,6 +109,12 @@ def main() -> None:
     else:
         orch = Orchestrator(args.orchestrator).value
 
+    out_path: str | None = args.out
+    if out_path is None and args.out_dir:
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        auto_name = f"smoke_{orch}_{file_path.stem}_{ts}.json"
+        out_path = str(Path(args.out_dir) / auto_name)
+
     payload = {
         "evaluation_type": "import_smoke_test",
         "file_path": str(file_path),
@@ -81,6 +126,8 @@ def main() -> None:
             "python": sys.executable,
             "python_version": platform.python_version(),
             "smoke_env_flag": "PIPELINE_SMOKE_TEST=1",
+            "carbon_tracking_requested": bool(args.track_carbon),
+            "carbon_scale_factor": float(args.carbon_scale_factor),
         },
         "error": None,
     }
@@ -96,10 +143,11 @@ def main() -> None:
             "message": str(e),
             "traceback": traceback.format_exc(),
         }
-        _emit(payload, args.out)
+        _emit(payload, out_path)
         return
 
     # Stage 2: import/exec
+    tracker = None
     try:
         mod_name = f"smoke_{file_path.stem}_{os.getpid()}"
         spec = importlib.util.spec_from_file_location(mod_name, str(file_path))
@@ -110,6 +158,13 @@ def main() -> None:
 
         # Let generated code optionally guard import-time side effects
         os.environ["PIPELINE_SMOKE_TEST"] = "1"
+
+        if args.track_carbon:
+            tracker = try_start_tracker(
+                country_iso_code=args.carbon_country_iso,
+                measure_power_secs=args.carbon_measure_power_secs,
+                project_name=f"orcheval_smoke_{orch}",
+            )
 
         spec.loader.exec_module(module)
 
@@ -132,7 +187,11 @@ def main() -> None:
             "traceback": traceback.format_exc(),
         }
 
-    _emit(payload, args.out)
+    if args.track_carbon:
+        raw_energy = try_stop_tracker(tracker)
+        payload["energy_profile"] = _apply_carbon_scaling(raw_energy, float(args.carbon_scale_factor))
+
+    _emit(payload, out_path)
 
 
 if __name__ == "__main__":
