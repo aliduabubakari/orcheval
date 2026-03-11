@@ -23,6 +23,7 @@ dev = ["pytest>=8.0.0", "ruff>=0.6.0", "flake8>=7.0.0", "pylint>=3.0.0", "radon>
 orcheval-unified = "orcheval.unified_evaluator:main"
 orcheval-smoke   = "orcheval.import_smoke_test_cli:main"
 orcheval-pct     = "orcheval.platform_compliance.pct_cli:main"
+orcheval-sat     = "orcheval.enhanced_static_analyzer:main"
 orcheval-compare = "orcheval.dag_comparator:main"
 orcheval         = "orcheval.cli:main"
 

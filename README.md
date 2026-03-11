@@ -131,6 +131,64 @@ The smoke payload includes:
 - scaled values (`scaled_energy_consumed_kwh`, `scaled_emissions_kgco2eq`)
 - scaling metadata (`scale_factor`, `scaling_applied`, `scale_note`)
 
+## Runtime Energy Evaluation (Service-Ready v1)
+
+Unified evaluation can now produce a dedicated `energy_evaluation` block with deterministic fallback:
+
+1. sample mode (user sample data)
+2. synthetic mode (LLM-generated deterministic recipe)
+3. heuristic mode (static structural profile)
+
+Enable it explicitly:
+
+```bash
+orcheval-unified path/to/pipeline.py \
+  --enable-energy-eval \
+  --energy-mode auto
+```
+
+Sample-data first run:
+
+```bash
+orcheval-unified path/to/pipeline.py \
+  --enable-energy-eval \
+  --energy-mode sample \
+  --energy-sample-path ./samples/
+```
+
+Synthetic mode with LLM provider:
+
+```bash
+orcheval-unified path/to/pipeline.py \
+  --enable-energy-eval \
+  --energy-mode synthetic \
+  --llm-provider openrouter \
+  --llm-model openai/gpt-4.1-mini \
+  --llm-api-key-env OPENROUTER_API_KEY
+```
+
+Common controls:
+
+- `--energy-max-rows`
+- `--energy-max-tasks`
+- `--energy-timeout-s`
+- `--energy-seed`
+- `--energy-execution-adapter representative|native|auto` (default: `representative`)
+- `--llm-base-url`
+- `--llm-timeout-s`
+
+Execution adapter behavior:
+
+- `representative`: deterministic bounded synthetic workload (default/recommended)
+- `native`: best-effort orchestrator-native bounded execution path (opt-in)
+- `auto`: try `native` first, fallback to `representative` in the same run
+
+Privacy defaults:
+
+- raw sample rows are not persisted
+- sample processing is ephemeral/in-memory for evaluation flow
+- LLM payload uses minimized workflow spec (not raw sample rows)
+
 ## Comparator (2+ DAGs)
 
 Compare structural similarity across two or more workflows, including mixed orchestrators.
@@ -160,11 +218,22 @@ Only used when you call `orcheval` explicitly.
 ```bash
 orcheval evaluate path/to/pipeline.py --dry-run-ephemeral-venv
 orcheval compare dag_a.py dag_b.py dag_c.py
+orcheval agent
 ```
+
+`orcheval agent` is a guided command builder. It asks about:
+- target mode (`unified`, `sat`, `pct`, `smoke`, `compare`)
+- orchestrator
+- file vs folder inputs
+- output destination (`default`, `out-dir`, `out`, `stdout`)
+- dry-run/constraints/carbon options where relevant
+
+Then it prints the exact command to run (and can execute it with `--run`).
 
 ## Standalone Smoke / PCT Commands
 
 ```bash
+orcheval-sat path/to/generated_workflow.py --out-dir ./reports/sat
 orcheval-smoke path/to/generated_workflow.py --orchestrator airflow --out smoke.json
 orcheval-pct path/to/generated_workflow.py --orchestrator auto --out pct.json
 ```

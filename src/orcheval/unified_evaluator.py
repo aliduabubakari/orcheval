@@ -40,6 +40,7 @@ from typing import Any, Dict, Optional, List, Tuple
 
 from .base_evaluator import EvaluationResult, Orchestrator
 from .enhanced_static_analyzer import EnhancedStaticAnalyzer
+from .energy.runtime_evaluation import EnergyEvaluationRequest, evaluate_energy
 from .subprocess_json_runner import run_cli_json
 
 
@@ -579,6 +580,19 @@ class UnifiedEvaluator:
         dry_run_capture_freeze: bool = False,
         dry_run_log_tail_chars: int = 1200,
         include_generation_context: bool = False,
+        enable_energy_evaluation: bool = False,
+        energy_mode: str = "auto",
+        energy_sample_paths: Optional[List[Path]] = None,
+        energy_max_rows: int = 500,
+        energy_max_tasks: int = 25,
+        energy_timeout_s: int = 120,
+        energy_seed: int = 1729,
+        energy_execution_adapter: str = "representative",
+        llm_provider: Optional[str] = None,
+        llm_model: Optional[str] = None,
+        llm_api_key_env: Optional[str] = None,
+        llm_base_url: Optional[str] = None,
+        llm_timeout_s: int = 30,
         track_carbon: bool = False,
         carbon_country_iso: Optional[str] = None,
         carbon_measure_power_secs: int = 1,
@@ -608,6 +622,19 @@ class UnifiedEvaluator:
         self.dry_run_capture_freeze = bool(dry_run_capture_freeze)
         self.dry_run_log_tail_chars = int(dry_run_log_tail_chars)
         self.include_generation_context = bool(include_generation_context)
+        self.enable_energy_evaluation = bool(enable_energy_evaluation)
+        self.energy_mode = (energy_mode or "auto").strip().lower()
+        self.energy_sample_paths = [Path(p) for p in (energy_sample_paths or [])]
+        self.energy_max_rows = int(energy_max_rows)
+        self.energy_max_tasks = int(energy_max_tasks)
+        self.energy_timeout_s = int(energy_timeout_s)
+        self.energy_seed = int(energy_seed)
+        self.energy_execution_adapter = (energy_execution_adapter or "representative").strip().lower()
+        self.llm_provider = (llm_provider or "").strip().lower() or None
+        self.llm_model = llm_model
+        self.llm_api_key_env = llm_api_key_env
+        self.llm_base_url = llm_base_url
+        self.llm_timeout_s = int(llm_timeout_s)
 
         self.track_carbon = bool(track_carbon)
         self.carbon_country_iso = carbon_country_iso
@@ -636,6 +663,16 @@ class UnifiedEvaluator:
     def _smoke_out_path(self, code_file: Path, orch: Orchestrator) -> Path:
         root = self._artifact_root_for(code_file)
         return root / (code_file.name + f".smoke_{orch.value}.json")
+
+    def _energy_requested(self) -> bool:
+        return bool(
+            self.enable_energy_evaluation
+            or self.energy_sample_paths
+            or self.llm_provider
+            or self.llm_model
+            or self.energy_mode != "auto"
+            or self.energy_execution_adapter != "representative"
+        )
 
     def _dependency_specs_for_dry_run(self, code_file: Path, orch: Orchestrator) -> List[str]:
         artifacts_meta = _load_artifacts_json(code_file)
@@ -945,6 +982,7 @@ class UnifiedEvaluator:
             dry_run_env_meta: Optional[Dict[str, Any]] = None
             python_override: Optional[Path] = None
             dry_run_error: Optional[str] = None
+            energy_payload: Optional[Dict[str, Any]] = None
 
             if self.dry_run_ephemeral_venv:
                 if target_orchestrator in (Orchestrator.AIRFLOW, Orchestrator.PREFECT, Orchestrator.DAGSTER):
@@ -1010,6 +1048,41 @@ class UnifiedEvaluator:
                         target_orchestrator,
                         python_override=python_override,
                     )
+
+                if self._energy_requested():
+                    runtime_py = python_override
+                    if runtime_py is None:
+                        runtime_py = _resolve_python_for_orchestrator(
+                            target_orchestrator,
+                            airflow_venv=self.airflow_venv,
+                            prefect_venv=self.prefect_venv,
+                            dagster_venv=self.dagster_venv,
+                            airflow_python=self.airflow_python,
+                            prefect_python=self.prefect_python,
+                            dagster_python=self.dagster_python,
+                        )
+
+                    req = EnergyEvaluationRequest(
+                        file_path=code_file,
+                        code_text=code_file.read_text(encoding="utf-8", errors="ignore"),
+                        orchestrator=target_orchestrator.value,
+                        repo_root=self.repo_root,
+                        runtime_python=Path(runtime_py) if runtime_py else None,
+                        mode_selected=self.energy_mode,
+                        sample_paths=list(self.energy_sample_paths),
+                        max_rows=self.energy_max_rows,
+                        max_tasks=self.energy_max_tasks,
+                        timeout_s=self.energy_timeout_s,
+                        seed=self.energy_seed,
+                        execution_adapter=self.energy_execution_adapter,
+                        llm_provider=self.llm_provider,
+                        llm_model=self.llm_model,
+                        llm_api_key_env=self.llm_api_key_env,
+                        llm_base_url=self.llm_base_url,
+                        llm_timeout_s=self.llm_timeout_s,
+                        artifacts_dir=self._artifact_root_for(code_file),
+                    )
+                    energy_payload = evaluate_energy(req).to_dict()
             finally:
                 if self.dry_run_ephemeral_venv:
                     self._cleanup_ephemeral_dry_run_env(dry_run_env_meta)
@@ -1053,6 +1126,7 @@ class UnifiedEvaluator:
                 "static_analysis":    _ensure_eval_payload_shape(sat_payload, kind="SAT"),
                 "import_smoke":       smoke_payload,
                 "platform_compliance": pct_payload,
+                "energy_evaluation":  energy_payload,
                 "semantic_analysis":  None,
 
                 "error_events": error_events,
@@ -1076,6 +1150,8 @@ class UnifiedEvaluator:
                     "semantic_fidelity_oracle":  None,
                     "semantic_fidelity_variant": None,
                     "semantic_issues": {"total": 0, "critical": 0, "major": 0, "minor": 0, "info": 0},
+                    "energy_mode_used": _safe_dict(energy_payload).get("mode_used") if isinstance(energy_payload, dict) else None,
+                    "energy_data_source": _safe_dict(energy_payload).get("data_source") if isinstance(energy_payload, dict) else None,
                 },
 
                 "metadata": {
@@ -1090,6 +1166,15 @@ class UnifiedEvaluator:
                         "pct_mode":               self.pct_mode,
                         "dry_run_ephemeral_venv": bool(self.dry_run_ephemeral_venv),
                         "dry_run_env":            dry_run_env_meta,
+                        "energy_requested":       bool(self._energy_requested()),
+                        "energy_mode_selected":   self.energy_mode,
+                        "energy_runtime_max_rows": self.energy_max_rows,
+                        "energy_runtime_max_tasks": self.energy_max_tasks,
+                        "energy_runtime_timeout_s": self.energy_timeout_s,
+                        "energy_seed":            self.energy_seed,
+                        "energy_execution_adapter": self.energy_execution_adapter,
+                        "llm_provider":           self.llm_provider,
+                        "llm_model":              self.llm_model,
                     }
                 }
             }
@@ -1118,6 +1203,7 @@ class UnifiedEvaluator:
                 "static_analysis":       None,
                 "import_smoke":          None,
                 "platform_compliance":   None,
+                "energy_evaluation":     None,
                 "semantic_analysis":     None,
                 "error_events": [{
                     "source":     "unified_evaluator",
@@ -1185,6 +1271,20 @@ def main():
     parser.add_argument("--carbon-measure-power-secs", type=int, default=1)
     parser.add_argument("--carbon-scale-factor", type=float, default=1.0, help="Scale import-stage measurement to realistic runtime proxy")
 
+    parser.add_argument("--enable-energy-eval", action="store_true", help="Enable runtime/service-ready energy evaluation block")
+    parser.add_argument("--energy-mode", default="auto", choices=["auto", "sample", "synthetic", "heuristic"])
+    parser.add_argument("--energy-sample-path", action="append", default=[], help="Path to sample data file/folder (repeatable)")
+    parser.add_argument("--energy-max-rows", type=int, default=500)
+    parser.add_argument("--energy-max-tasks", type=int, default=25)
+    parser.add_argument("--energy-timeout-s", type=int, default=120)
+    parser.add_argument("--energy-seed", type=int, default=1729)
+    parser.add_argument("--energy-execution-adapter", default="representative", choices=["representative", "native", "auto"])
+    parser.add_argument("--llm-provider", default=None, help="openai|anthropic|openrouter|deepinfra|deepseek")
+    parser.add_argument("--llm-model", default=None)
+    parser.add_argument("--llm-api-key-env", default=None, help="Environment variable name that stores provider API key")
+    parser.add_argument("--llm-base-url", default=None)
+    parser.add_argument("--llm-timeout-s", type=int, default=30)
+
     parser.add_argument("--pct-timeout-s",  type=int, default=120)
     parser.add_argument("--smoke-timeout-s", type=int, default=60)
 
@@ -1218,6 +1318,19 @@ def main():
         dry_run_capture_freeze=bool(args.dry_run_capture_freeze),
         dry_run_log_tail_chars=int(args.dry_run_log_tail_chars),
         include_generation_context=bool(args.include_generation_context),
+        enable_energy_evaluation=bool(args.enable_energy_eval),
+        energy_mode=args.energy_mode,
+        energy_sample_paths=[Path(p) for p in (args.energy_sample_path or [])],
+        energy_max_rows=int(args.energy_max_rows),
+        energy_max_tasks=int(args.energy_max_tasks),
+        energy_timeout_s=int(args.energy_timeout_s),
+        energy_seed=int(args.energy_seed),
+        energy_execution_adapter=args.energy_execution_adapter,
+        llm_provider=args.llm_provider,
+        llm_model=args.llm_model,
+        llm_api_key_env=args.llm_api_key_env,
+        llm_base_url=args.llm_base_url,
+        llm_timeout_s=int(args.llm_timeout_s),
         track_carbon=bool(args.track_carbon),
         carbon_country_iso=args.carbon_country_iso,
         carbon_measure_power_secs=int(args.carbon_measure_power_secs),

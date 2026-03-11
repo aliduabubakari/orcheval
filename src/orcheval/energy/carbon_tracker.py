@@ -87,17 +87,26 @@ def try_stop_tracker(handle: Optional[TrackerHandle]) -> Dict[str, Any]:
 
     If handle is None, returns available=False payload.
     """
+    measurement_scope = "import_exec_only"
+    disclaimer = (
+        "This measurement covers only the energy/carbon during import/exec of the workflow module "
+        "(DAG/flow/job parse and registration). It does not include task runtime energy."
+    )
+    if handle is not None:
+        cfg = handle.config or {}
+        if isinstance(cfg.get("measurement_scope"), str):
+            measurement_scope = cfg["measurement_scope"]
+        if isinstance(cfg.get("disclaimer"), str):
+            disclaimer = cfg["disclaimer"]
+
     base = {
         "tool": "codecarbon",
         "available": bool(handle is not None),
         "python": sys.executable,
         "python_version": platform.python_version(),
         "platform": platform.platform(),
-        "measurement_scope": "import_exec_only",
-        "disclaimer": (
-            "This measurement covers only the energy/carbon during import/exec of the workflow module "
-            "(DAG/flow/job parse and registration). It does not include task runtime energy."
-        ),
+        "measurement_scope": measurement_scope,
+        "disclaimer": disclaimer,
     }
 
     if handle is None:
