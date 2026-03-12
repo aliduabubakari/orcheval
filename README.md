@@ -57,6 +57,13 @@ Use `--stdout` to print JSON instead.
 By default, `run_context` and `generation` sections are omitted unless populated.
 Use `--include-generation-context` to always include them.
 
+Knowledge-pack behavior (default is strict legacy compatibility):
+
+```bash
+orcheval-unified path/to/pipeline.py \
+  --knowledge-pack-mode legacy
+```
+
 ### Select orchestrator manually
 
 ```bash
@@ -69,6 +76,21 @@ orcheval-unified path/to/pipeline.py --orchestrator airflow
 orcheval-unified path/to/pipeline.py --out-dir ./reports
 orcheval-unified path/to/pipeline.py --out ./reports/my_run.json
 ```
+
+### Optional deterministic knowledge-pack mode
+
+```bash
+orcheval-unified path/to/pipeline.py \
+  --knowledge-pack-mode pack \
+  --knowledge-pack ./packs/default_pack_v1.json \
+  --knowledge-pack-version 2026.03.0
+```
+
+Modes:
+
+- `legacy` (default): current built-in evaluator behavior
+- `pack`: knowledge-pack-driven version/capability parameters
+- `auto`: try pack resolution, degrade conservatively when unresolved
 
 ### Use a dedicated reports directory for all artifacts
 
@@ -177,6 +199,9 @@ Common controls:
 - `--llm-base-url`
 - `--llm-timeout-s`
 
+Pack metadata is emitted in `energy_evaluation.metadata.knowledge_pack`, including
+resolution status and uncertainty flags.
+
 Execution adapter behavior:
 
 - `representative`: deterministic bounded synthetic workload (default/recommended)
@@ -227,6 +252,7 @@ orcheval agent
 - file vs folder inputs
 - output destination (`default`, `out-dir`, `out`, `stdout`)
 - dry-run/constraints/carbon options where relevant
+- optional knowledge-pack mode/path/version for `unified` and `pct`
 
 Then it prints the exact command to run (and can execute it with `--run`).
 
@@ -236,6 +262,18 @@ Then it prints the exact command to run (and can execute it with `--run`).
 orcheval-sat path/to/generated_workflow.py --out-dir ./reports/sat
 orcheval-smoke path/to/generated_workflow.py --orchestrator airflow --out smoke.json
 orcheval-pct path/to/generated_workflow.py --orchestrator auto --out pct.json
+orcheval-pct path/to/generated_workflow.py --knowledge-pack-mode pack --knowledge-pack ./packs/default_pack_v1.json
+```
+
+## Offline Knowledge-Pack Update Workflow
+
+Build a deterministic candidate pack + review report (no runtime web lookups):
+
+```bash
+orcheval-knowledge-pack-update \
+  --base-pack ./packs/default_pack_v1.json \
+  --snapshot ./curated_snapshot.json \
+  --out-dir ./orcheval_reports/knowledge_packs
 ```
 
 ## Working with pipeline-codegen outputs

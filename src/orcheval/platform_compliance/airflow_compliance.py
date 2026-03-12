@@ -71,27 +71,56 @@ class AirflowComplianceTester(BasePlatformComplianceTester):
 
     ORCHESTRATOR = Orchestrator.AIRFLOW
 
-    def _check_minimum_structure(self, code: str) -> bool:
-        """Check if code has minimum Airflow structure."""
+    def _get_orchestrator_runtime_version(self) -> str | None:
+        return AIRFLOW_VERSION
+
+    def _evaluate_minimum_structure(self, code: str) -> Tuple[bool, Dict[str, Any]]:
         c = code or ""
         cl = c.lower()
 
-        # DAG can be defined in multiple valid styles:
-        # 1) with DAG(...) as dag:
-        # 2) dag = DAG(...)
-        # 3) @dag decorator
-        has_dag_context = ("with dag(" in cl) or ("with dag (" in cl) or ("with dag(" in cl) or ("with dag" in cl and "dag(" in cl)
-        has_dag_decorator = "@dag" in c
+        dag_tokens, dag_prov = self._pack_rule(
+            check_id="pct.airflow.minimum_structure.dag_tokens",
+            default=["dag(", "with dag", "@dag"],
+            capability_refs=["supports_classic_operators", "supports_taskflow"],
+        )
+        task_tokens, task_prov = self._pack_rule(
+            check_id="pct.airflow.minimum_structure.task_tokens",
+            default=["operator(", "@task"],
+            capability_refs=["supports_classic_operators", "supports_taskflow"],
+        )
+
+        dag_list = [str(t).lower() for t in (dag_tokens if isinstance(dag_tokens, list) else []) if str(t).strip()]
+        task_list = [str(t).lower() for t in (task_tokens if isinstance(task_tokens, list) else []) if str(t).strip()]
+
+        has_dag_token = any(tok in cl for tok in dag_list)
         has_dag_call_anywhere = bool(re.search(r"\bDAG\s*\(", c))
         has_dag_assignment = bool(re.search(r"\bdag\s*=\s*DAG\s*\(", c))
+        has_dag = bool(has_dag_token or has_dag_call_anywhere or has_dag_assignment)
 
-        has_dag = has_dag_context or has_dag_decorator or has_dag_assignment or has_dag_call_anywhere
-
-        # Tasks: allow any FooOperator( ... ) not just literal "Operator("
         has_any_operator = bool(re.search(r"\b\w+Operator\s*\(", c))
-        has_taskflow = "@task" in c
+        has_task_token = any(tok in cl for tok in task_list)
+        has_tasks = bool(has_any_operator or has_task_token)
 
-        return bool(has_dag and (has_any_operator or has_taskflow))
+        details: Dict[str, Any] = {
+            "has_dag": has_dag,
+            "has_tasks": has_tasks,
+            "dag_tokens": dag_list,
+            "task_tokens": task_list,
+            "provenance": {
+                "dag_tokens": dag_prov,
+                "task_tokens": task_prov,
+            },
+        }
+        return bool(has_dag and has_tasks), details
+
+    def _check_minimum_structure(self, code: str) -> bool:
+        """Check if code has minimum Airflow structure."""
+        ok, _details = self._evaluate_minimum_structure(code)
+        return ok
+
+    def _check_minimum_structure_details(self, code: str) -> Dict[str, Any]:
+        _ok, details = self._evaluate_minimum_structure(code)
+        return details
 
     # ═══════════════════════════════════════════════════════════════════════
     # LOADABILITY
@@ -554,10 +583,18 @@ class AirflowComplianceTester(BasePlatformComplianceTester):
     ) -> Tuple[float, List[Issue], Dict]:
         """Check Airflow dry-run/test capability."""
         issues = []
+        test_patterns, prov = self._pack_rule(
+            check_id="pct.airflow.dryrun.test_patterns",
+            default=["test_mode=True", "is_paused_upon_creation=True", "dag.test()"],
+            capability_refs=["supports_dag_test"],
+        )
+        pattern_list = [str(p) for p in (test_patterns if isinstance(test_patterns, list) else []) if str(p).strip()]
         details = {
             "airflow_available": AIRFLOW_AVAILABLE,
             "can_test": False,
             "has_test_mode": False,
+            "test_patterns": pattern_list,
+            "provenance": prov,
         }
 
         if not AIRFLOW_AVAILABLE:
@@ -568,13 +605,7 @@ class AirflowComplianceTester(BasePlatformComplianceTester):
                 details={"airflow_available": False},
             )], details
 
-        test_patterns = [
-            "test_mode=True",
-            "is_paused_upon_creation=True",
-            "dag.test()",
-        ]
-
-        if any(p in code for p in test_patterns):
+        if any(p in code for p in pattern_list):
             details["has_test_mode"] = True
             details["can_test"] = True
             return 4.0, issues, details

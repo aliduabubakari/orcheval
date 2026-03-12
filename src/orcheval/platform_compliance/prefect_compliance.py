@@ -53,11 +53,49 @@ class PrefectComplianceTester(BasePlatformComplianceTester):
 
     ORCHESTRATOR = Orchestrator.PREFECT
 
+    def _get_orchestrator_runtime_version(self) -> str | None:
+        return PREFECT_VERSION
+
+    def _evaluate_minimum_structure(self, code: str) -> Tuple[bool, Dict[str, Any]]:
+        flow_tokens, flow_prov = self._pack_rule(
+            check_id="pct.prefect.minimum_structure.flow_tokens",
+            default=["@flow"],
+            capability_refs=["supports_flow_task_decorators"],
+        )
+        task_tokens, task_prov = self._pack_rule(
+            check_id="pct.prefect.minimum_structure.task_tokens",
+            default=["@task", "def "],
+            capability_refs=["supports_flow_task_decorators"],
+        )
+
+        c = code or ""
+        cl = c.lower()
+        flow_list = [str(t).lower() for t in (flow_tokens if isinstance(flow_tokens, list) else []) if str(t).strip()]
+        task_list = [str(t).lower() for t in (task_tokens if isinstance(task_tokens, list) else []) if str(t).strip()]
+
+        has_flow = any(tok in cl for tok in flow_list)
+        has_tasks = any(tok in cl for tok in task_list)
+
+        details: Dict[str, Any] = {
+            "has_flow": has_flow,
+            "has_tasks": has_tasks,
+            "flow_tokens": flow_list,
+            "task_tokens": task_list,
+            "provenance": {
+                "flow_tokens": flow_prov,
+                "task_tokens": task_prov,
+            },
+        }
+        return bool(has_flow and has_tasks), details
+
     def _check_minimum_structure(self, code: str) -> bool:
         """Check if code has minimum Prefect structure."""
-        has_flow = "@flow" in code
-        has_tasks = "@task" in code or "def " in code
-        return has_flow and has_tasks
+        ok, _details = self._evaluate_minimum_structure(code)
+        return ok
+
+    def _check_minimum_structure_details(self, code: str) -> Dict[str, Any]:
+        _ok, details = self._evaluate_minimum_structure(code)
+        return details
 
     # ═══════════════════════════════════════════════════════════════════════
     # LOADABILITY
@@ -430,9 +468,17 @@ class PrefectComplianceTester(BasePlatformComplianceTester):
     ) -> Tuple[float, List[Issue], Dict]:
         """Check Prefect dry-run/validation capability."""
         issues = []
+        test_patterns, prov = self._pack_rule(
+            check_id="pct.prefect.dryrun.test_patterns",
+            default=["@flow", "def "],
+            capability_refs=["supports_flow_runtime_invocation"],
+        )
+        pattern_list = [str(p) for p in (test_patterns if isinstance(test_patterns, list) else []) if str(p).strip()]
         details = {
             "prefect_available": PREFECT_AVAILABLE,
             "can_validate": False,
+            "test_patterns": pattern_list,
+            "provenance": prov,
         }
 
         if not PREFECT_AVAILABLE:
@@ -443,7 +489,7 @@ class PrefectComplianceTester(BasePlatformComplianceTester):
                 details={"prefect_available": False},
             )], details
 
-        if "@flow" in code and "def " in code:
+        if all(p in code for p in pattern_list[:2]) if len(pattern_list) >= 2 else any(p in code for p in pattern_list):
             details["can_validate"] = True
             return 4.0, issues, details
 

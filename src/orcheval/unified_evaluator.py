@@ -580,6 +580,9 @@ class UnifiedEvaluator:
         dry_run_capture_freeze: bool = False,
         dry_run_log_tail_chars: int = 1200,
         include_generation_context: bool = False,
+        knowledge_pack_mode: str = "legacy",
+        knowledge_pack: Optional[Path] = None,
+        knowledge_pack_version: Optional[str] = None,
         enable_energy_evaluation: bool = False,
         energy_mode: str = "auto",
         energy_sample_paths: Optional[List[Path]] = None,
@@ -622,6 +625,9 @@ class UnifiedEvaluator:
         self.dry_run_capture_freeze = bool(dry_run_capture_freeze)
         self.dry_run_log_tail_chars = int(dry_run_log_tail_chars)
         self.include_generation_context = bool(include_generation_context)
+        self.knowledge_pack_mode = (knowledge_pack_mode or "legacy").strip().lower()
+        self.knowledge_pack = Path(knowledge_pack) if knowledge_pack else None
+        self.knowledge_pack_version = knowledge_pack_version
         self.enable_energy_evaluation = bool(enable_energy_evaluation)
         self.energy_mode = (energy_mode or "auto").strip().lower()
         self.energy_sample_paths = [Path(p) for p in (energy_sample_paths or [])]
@@ -842,7 +848,17 @@ class UnifiedEvaluator:
         payload = run_cli_json(
             python_exe=Path(py),
             module_name="orcheval.platform_compliance.pct_cli",
-            args=[str(code_file), "--orchestrator", orch.value, "--out", str(out_json)],
+            args=[
+                str(code_file),
+                "--orchestrator",
+                orch.value,
+                "--out",
+                str(out_json),
+                "--knowledge-pack-mode",
+                self.knowledge_pack_mode,
+            ]
+            + (["--knowledge-pack", str(self.knowledge_pack)] if self.knowledge_pack else [])
+            + (["--knowledge-pack-version", str(self.knowledge_pack_version)] if self.knowledge_pack_version else []),
             out_json=out_json,
             cwd=self.repo_root,
             env=env,
@@ -1075,6 +1091,9 @@ class UnifiedEvaluator:
                         timeout_s=self.energy_timeout_s,
                         seed=self.energy_seed,
                         execution_adapter=self.energy_execution_adapter,
+                        knowledge_pack_mode=self.knowledge_pack_mode,
+                        knowledge_pack=self.knowledge_pack,
+                        knowledge_pack_version=self.knowledge_pack_version,
                         llm_provider=self.llm_provider,
                         llm_model=self.llm_model,
                         llm_api_key_env=self.llm_api_key_env,
@@ -1167,6 +1186,9 @@ class UnifiedEvaluator:
                         "dry_run_ephemeral_venv": bool(self.dry_run_ephemeral_venv),
                         "dry_run_env":            dry_run_env_meta,
                         "energy_requested":       bool(self._energy_requested()),
+                        "knowledge_pack_mode":    self.knowledge_pack_mode,
+                        "knowledge_pack":         str(self.knowledge_pack) if self.knowledge_pack else None,
+                        "knowledge_pack_version": self.knowledge_pack_version,
                         "energy_mode_selected":   self.energy_mode,
                         "energy_runtime_max_rows": self.energy_max_rows,
                         "energy_runtime_max_tasks": self.energy_max_tasks,
@@ -1265,6 +1287,9 @@ def main():
     parser.add_argument("--dry-run-log-tail-chars", type=int, default=1200, help="Per-step stdout/stderr tail length recorded in dry-run metadata")
     parser.add_argument("--no-dry-run-install-orcheval", action="store_true", help="Do not install local orcheval package in dry-run venv")
     parser.add_argument("--include-generation-context", action="store_true", help="Include run_context/generation blocks in unified JSON")
+    parser.add_argument("--knowledge-pack-mode", default="legacy", choices=["legacy", "pack", "auto"])
+    parser.add_argument("--knowledge-pack", default=None, help="Path to local knowledge-pack JSON")
+    parser.add_argument("--knowledge-pack-version", default=None, help="Expected knowledge-pack version")
 
     parser.add_argument("--track-carbon", action="store_true", help="Enable CodeCarbon during smoke import stage")
     parser.add_argument("--carbon-country-iso", default=None, help="ISO3 country code for offline carbon intensity")
@@ -1318,6 +1343,9 @@ def main():
         dry_run_capture_freeze=bool(args.dry_run_capture_freeze),
         dry_run_log_tail_chars=int(args.dry_run_log_tail_chars),
         include_generation_context=bool(args.include_generation_context),
+        knowledge_pack_mode=args.knowledge_pack_mode,
+        knowledge_pack=Path(args.knowledge_pack) if args.knowledge_pack else None,
+        knowledge_pack_version=args.knowledge_pack_version,
         enable_energy_evaluation=bool(args.enable_energy_eval),
         energy_mode=args.energy_mode,
         energy_sample_paths=[Path(p) for p in (args.energy_sample_path or [])],

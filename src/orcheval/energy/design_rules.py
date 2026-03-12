@@ -12,6 +12,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
+from ..knowledge_pack import KnowledgePackResolution, resolve_rule_value
+
 
 RULES_SCHEMA_VERSION = "1.1.0"
 
@@ -37,6 +39,23 @@ class FiredRule:
 
 
 class EcoDesignRuleEngine:
+    def __init__(self, *, knowledge_pack_resolution: Optional[KnowledgePackResolution] = None):
+        self.knowledge_pack_resolution = knowledge_pack_resolution
+
+    def _param(
+        self,
+        *,
+        check_id: str,
+        default: Any,
+        capability_refs: Optional[List[str]] = None,
+    ) -> tuple[Any, Dict[str, Any]]:
+        return resolve_rule_value(
+            self.knowledge_pack_resolution,
+            check_id=check_id,
+            default=default,
+            capability_refs=capability_refs,
+        )
+
     def evaluate(self, profile: Dict[str, Any]) -> Dict[str, Any]:
         fired: List[FiredRule] = []
 
@@ -99,7 +118,12 @@ class EcoDesignRuleEngine:
         # ------------------------------------------------------------
         # Rule: poke-mode sensors
         # ------------------------------------------------------------
-        if has_sensor and poke:
+        sensor_poke_enabled, sensor_poke_prov = self._param(
+            check_id="energy.rule.sensor_poke_mode.enabled",
+            default=True,
+            capability_refs=["supports_reschedule_sensors"],
+        )
+        if bool(sensor_poke_enabled) and has_sensor and poke:
             fired.append(FiredRule(
                 rule_id="SENSOR_POKE_MODE",
                 severity="major",
@@ -112,6 +136,7 @@ class EcoDesignRuleEngine:
                     "has_sensor": has_sensor,
                     "poke_mode_detected": poke,
                     "polling_heavy_count": polling_count,
+                    "provenance": sensor_poke_prov,
                 },
                 recommendation="For Airflow sensors: set mode='reschedule' and tune poke_interval/timeout.",
             ))
@@ -119,7 +144,12 @@ class EcoDesignRuleEngine:
         # ------------------------------------------------------------
         # Rule: mostly sequential graph
         # ------------------------------------------------------------
-        if total_tasks >= 4 and isinstance(sequential_ratio, (int, float)) and sequential_ratio >= 0.80:
+        seq_threshold, seq_threshold_prov = self._param(
+            check_id="energy.rule.deep_sequential_chain.threshold",
+            default=0.80,
+            capability_refs=["parallelism_hints_available"],
+        )
+        if total_tasks >= 4 and isinstance(sequential_ratio, (int, float)) and sequential_ratio >= float(seq_threshold):
             fired.append(FiredRule(
                 rule_id="DEEP_SEQUENTIAL_CHAIN",
                 severity="minor",
@@ -132,6 +162,8 @@ class EcoDesignRuleEngine:
                     "total_tasks": total_tasks,
                     "sequential_bottleneck_ratio": sequential_ratio,
                     "parallelism_index": parallelism_index,
+                    "threshold": float(seq_threshold),
+                    "provenance": seq_threshold_prov,
                 },
                 recommendation="Look for independent steps that can run concurrently (fan-out/fan-in pattern).",
             ))
@@ -160,7 +192,12 @@ class EcoDesignRuleEngine:
         # ------------------------------------------------------------
         # Rule: High XCom signaling
         # ------------------------------------------------------------
-        if xcom_total >= 10:
+        xcom_threshold, xcom_threshold_prov = self._param(
+            check_id="energy.rule.high_xcom_intensity.threshold",
+            default=10,
+            capability_refs=["xcom_signals_available"],
+        )
+        if xcom_total >= int(xcom_threshold):
             fired.append(FiredRule(
                 rule_id="HIGH_XCOM_INTENSITY",
                 severity="minor",
@@ -169,14 +206,23 @@ class EcoDesignRuleEngine:
                     "High XCom push/pull frequency can increase orchestration overhead (metadata DB traffic) "
                     "and may hurt performance/energy efficiency."
                 ),
-                evidence={"xcom_total_signals": xcom_total},
+                evidence={
+                    "xcom_total_signals": xcom_total,
+                    "threshold": int(xcom_threshold),
+                    "provenance": xcom_threshold_prov,
+                },
                 recommendation="Prefer passing references/paths to data instead of large payloads via XCom.",
             ))
 
         # ------------------------------------------------------------
         # Rule: Heavy compute + high schedule frequency
         # ------------------------------------------------------------
-        if heavy_count > 0 and isinstance(runs_per_year, int) and runs_per_year >= 8760:
+        high_freq_threshold, high_freq_threshold_prov = self._param(
+            check_id="energy.rule.high_frequency_heavy_compute.runs_per_year_threshold",
+            default=8760,
+            capability_refs=["schedule_profile_available"],
+        )
+        if heavy_count > 0 and isinstance(runs_per_year, int) and runs_per_year >= int(high_freq_threshold):
             fired.append(FiredRule(
                 rule_id="HIGH_FREQUENCY_HEAVY_COMPUTE",
                 severity="major",
@@ -187,6 +233,8 @@ class EcoDesignRuleEngine:
                 evidence={
                     "heavy_compute_count": heavy_count,
                     "runs_per_year_estimate": runs_per_year,
+                    "threshold": int(high_freq_threshold),
+                    "provenance": high_freq_threshold_prov,
                 },
                 recommendation="Consider event-driven triggering, incremental processing, caching, and idempotency.",
             ))
@@ -194,7 +242,12 @@ class EcoDesignRuleEngine:
         # ------------------------------------------------------------
         # Rule: Large fan-out
         # ------------------------------------------------------------
-        if total_tasks >= 8 and max_fan_out >= 5:
+        fanout_threshold, fanout_threshold_prov = self._param(
+            check_id="energy.rule.large_fan_out.max_fan_out_threshold",
+            default=5,
+            capability_refs=["fanout_metric_available"],
+        )
+        if total_tasks >= 8 and max_fan_out >= int(fanout_threshold):
             fired.append(FiredRule(
                 rule_id="LARGE_FAN_OUT",
                 severity="info",
@@ -202,13 +255,19 @@ class EcoDesignRuleEngine:
                 message=(
                     "A high fan-out can increase scheduling overhead and create bursts of parallel activity."
                 ),
-                evidence={"max_fan_out": max_fan_out, "total_tasks": total_tasks},
+                evidence={
+                    "max_fan_out": max_fan_out,
+                    "total_tasks": total_tasks,
+                    "threshold": int(fanout_threshold),
+                    "provenance": fanout_threshold_prov,
+                },
                 recommendation="Consider pools/queues/concurrency controls to avoid resource spikes.",
             ))
 
         return {
             "schema_version": RULES_SCHEMA_VERSION,
             "rule_engine": "EcoDesignRuleEngine",
+            "knowledge_pack_applied": bool(getattr(self.knowledge_pack_resolution, "applied", False)),
             "rule_count": len(fired),
             "rules": [r.to_dict() for r in fired],
             "disclaimer": (

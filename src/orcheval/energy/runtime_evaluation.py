@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Protocol, Tuple
 
 from ..base_evaluator import Orchestrator
+from ..knowledge_pack import detect_orchestrator_version, resolve_knowledge_pack
 from ..subprocess_json_runner import run_cli_json
 from .design_rules import EcoDesignRuleEngine
 from .structural_energy_analyzer import StructuralEnergyAnalyzer
@@ -72,6 +73,9 @@ class EnergyEvaluationRequest:
     llm_base_url: Optional[str] = None
     llm_timeout_s: int = 30
     execution_adapter: str = "representative"
+    knowledge_pack_mode: str = "legacy"
+    knowledge_pack: Optional[Path] = None
+    knowledge_pack_version: Optional[str] = None
     artifacts_dir: Optional[Path] = None
 
 
@@ -556,10 +560,9 @@ def _recipe_to_rows(recipe: Dict[str, Any], *, signature_hash: str, seed: int, m
     return rows
 
 
-def _build_minimized_spec(file_path: Path, code_text: str, orchestrator: str) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+def _build_minimized_spec(file_path: Path, code_text: str, orchestrator: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     analyzer = StructuralEnergyAnalyzer()
     profile = analyzer.analyze(file_path, orchestrator=orchestrator)
-    rules = EcoDesignRuleEngine().evaluate(profile)
 
     metrics = profile.get("metrics") or {}
     signals = profile.get("signals") or {}
@@ -580,7 +583,7 @@ def _build_minimized_spec(file_path: Path, code_text: str, orchestrator: str) ->
             "source": schedule.get("source"),
         },
     }
-    return minimized, profile, rules
+    return minimized, profile
 
 
 def _next_mode_for(modes: List[str], idx: int) -> Optional[str]:
@@ -665,11 +668,24 @@ def evaluate_energy(request: EnergyEvaluationRequest) -> EnergyEvaluationResult:
     mode_used = "heuristic"
     data_source = "none"
 
-    minimized_spec, heuristic_profile, heuristic_rules = _build_minimized_spec(
+    orch_version = detect_orchestrator_version(
+        request.orchestrator,
+        python_exe=request.runtime_python,
+    )
+    kp_resolution = resolve_knowledge_pack(
+        orchestrator=request.orchestrator,
+        orchestrator_version=orch_version,
+        mode=request.knowledge_pack_mode,
+        pack_path=request.knowledge_pack,
+        pack_version=request.knowledge_pack_version,
+    )
+
+    minimized_spec, heuristic_profile = _build_minimized_spec(
         request.file_path,
         request.code_text,
         request.orchestrator,
     )
+    heuristic_rules = EcoDesignRuleEngine(knowledge_pack_resolution=kp_resolution).evaluate(heuristic_profile)
     signature_hash = _sha256_text(json.dumps(minimized_spec, sort_keys=True))
 
     modes = _resolve_modes(request.mode_selected)
@@ -937,12 +953,15 @@ def evaluate_energy(request: EnergyEvaluationRequest) -> EnergyEvaluationResult:
 
     metadata = {
         "orchestrator": request.orchestrator,
+        "orchestrator_version": orch_version,
         "runtime_supported": request.orchestrator in RUNTIME_SUPPORTED,
         "signature_hash": signature_hash,
         "seed": int(request.seed),
         "max_rows": int(request.max_rows),
         "max_tasks": int(request.max_tasks),
         "execution_adapter_selected": (request.execution_adapter or "representative"),
+        "knowledge_pack": kp_resolution.to_dict(),
+        "uncertainty": kp_resolution.uncertainty,
         "total_duration_s": round(time.time() - started_all, 4),
     }
 

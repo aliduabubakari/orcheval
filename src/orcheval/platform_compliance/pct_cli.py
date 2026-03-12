@@ -72,6 +72,9 @@ def main():
     )
     parser.add_argument("--out", default=None, help="Write full JSON result to this path")
     parser.add_argument("--out-dir", default=None, help="Write JSON result into this directory (auto filename)")
+    parser.add_argument("--knowledge-pack", default=None, help="Path to local knowledge-pack JSON")
+    parser.add_argument("--knowledge-pack-version", default=None, help="Expected knowledge-pack version")
+    parser.add_argument("--knowledge-pack-mode", default="legacy", choices=["legacy", "pack", "auto"])
     parser.add_argument("--print-summary", action="store_true")
     parser.add_argument("--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"])
     args = parser.parse_args()
@@ -106,7 +109,12 @@ def main():
                 "issues": [],
             }
         else:
-            tester = TESTERS[orch](config=None)
+            tester_cfg = {
+                "knowledge_pack_mode": args.knowledge_pack_mode,
+                "knowledge_pack": args.knowledge_pack,
+                "knowledge_pack_version": args.knowledge_pack_version,
+            }
+            tester = TESTERS[orch](config=tester_cfg)
             result = tester.evaluate(file_path)
             payload = result.to_dict()
             payload["issues"] = [i.to_dict() for i in result.all_issues]
