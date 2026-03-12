@@ -1,15 +1,15 @@
 {
   "evaluation_type": "import_smoke_test",
-  "file_path": "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
+  "file_path": "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
   "orchestrator": "airflow",
-  "timestamp": "2026-03-10T23:31:07.979335",
+  "timestamp": "2026-03-12T23:22:06.446631",
   "ok": true,
   "stages": {
     "compile_ok": true,
     "import_exec_ok": true
   },
   "metadata": {
-    "python": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/bin/python",
+    "python": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/bin/python",
     "python_version": "3.10.18",
     "smoke_env_flag": "PIPELINE_SMOKE_TEST=1",
     "carbon_tracking_requested": false,
@@ -18,14 +18,14 @@
   "error": null,
   "_subprocess": {
     "cmd": [
-      "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/bin/python",
+      "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/bin/python",
       "-m",
       "orcheval.import_smoke_test_cli",
-      "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
+      "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
       "--orchestrator",
       "airflow",
       "--out",
-      "generated_workflows_proof/airflow_ops_mix/airflow/template/orcheval_reports/pipeline.py.smoke_airflow.json",
+      "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/orcheval_reports/pipeline.py.smoke_airflow.json",
       "--carbon-measure-power-secs",
       "1",
       "--carbon-scale-factor",
@@ -37,6 +37,6 @@
     "returncode": 0,
     "timed_out": false,
     "stdout_tail": "",
-    "stderr_tail": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/lib/python3.10/site-packages/airflow/metrics/base_stats_logger.py:22 RemovedInAirflow3Warning: Timer and timing metrics publish in seconds were deprecated. It is enabled by default from Airflow 3 onwards. Enable timer_unit_consistency to publish all the timer and timing metrics in milliseconds.\n/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/lib/python3.10/site-packages/airflow/triggers/base.py:27 RemovedInAirflow3Warning: Timer and timing metrics publish in seconds were deprecated. It is enabled by default from Airflow 3 onwards. Enable timer_unit_consistency to publish all the timer and timing metrics in milliseconds.\n"
+    "stderr_tail": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/lib/python3.10/site-packages/airflow/metrics/base_stats_logger.py:22 RemovedInAirflow3Warning: Timer and timing metrics publish in seconds were deprecated. It is enabled by default from Airflow 3 onwards. Enable timer_unit_consistency to publish all the timer and timing metrics in milliseconds.\n/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/lib/python3.10/site-packages/airflow/triggers/base.py:27 RemovedInAirflow3Warning: Timer and timing metrics publish in seconds were deprecated. It is enabled by default from Airflow 3 onwards. Enable timer_unit_consistency to publish all the timer and timing metrics in milliseconds.\n"
   }
 }

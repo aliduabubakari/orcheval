@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "file_path": "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
+  "file_path": "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
   "orchestrator": "airflow",
-  "evaluation_timestamp": "2026-03-10T23:31:12.933686",
+  "evaluation_timestamp": "2026-03-12T23:22:12.663031",
   "alpha": 0.5,
   "yaml_valid": true,
   "static_analysis": {
     "evaluation_type": "enhanced_static_analysis",
-    "file_path": "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
+    "file_path": "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
     "orchestrator": "airflow",
-    "timestamp": "2026-03-10T23:30:45.119834",
+    "timestamp": "2026-03-12T23:21:43.442665",
     "metadata": {
       "file_size_bytes": 731,
       "line_count": 16,
@@ -57,11 +57,11 @@
             "violations": 7,
             "violations_per_100_lines": 43.75,
             "sample": [
-              "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:60: E231 missing whitespace after ','",
-              "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:62: E231 missing whitespace after ','",
-              "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:80: E501 line too long (103 > 79 characters)",
-              "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:9:80: E501 line too long (85 > 79 characters)",
-              "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:10:80: E501 line too long (92 > 79 characters)"
+              "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:60: E231 missing whitespace after ','",
+              "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:62: E231 missing whitespace after ','",
+              "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:80: E501 line too long (103 > 79 characters)",
+              "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:9:80: E501 line too long (85 > 79 characters)",
+              "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:10:80: E501 line too long (92 > 79 characters)"
             ]
           },
           "lint": {
@@ -89,7 +89,7 @@
           {
             "severity": "minor",
             "category": "style",
-            "message": "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:60: E231 missing whitespace after ','",
+            "message": "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:60: E231 missing whitespace after ','",
             "line": null,
             "tool": "flake8",
             "details": {}
@@ -97,7 +97,7 @@
           {
             "severity": "minor",
             "category": "style",
-            "message": "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:62: E231 missing whitespace after ','",
+            "message": "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:62: E231 missing whitespace after ','",
             "line": null,
             "tool": "flake8",
             "details": {}
@@ -105,7 +105,7 @@
           {
             "severity": "minor",
             "category": "style",
-            "message": "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:80: E501 line too long (103 > 79 characters)",
+            "message": "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:80: E501 line too long (103 > 79 characters)",
             "line": null,
             "tool": "flake8",
             "details": {}
@@ -315,7 +315,7 @@
       {
         "severity": "minor",
         "category": "style",
-        "message": "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:60: E231 missing whitespace after ','",
+        "message": "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:60: E231 missing whitespace after ','",
         "line": null,
         "tool": "flake8",
         "details": {}
@@ -323,7 +323,7 @@
       {
         "severity": "minor",
         "category": "style",
-        "message": "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:62: E231 missing whitespace after ','",
+        "message": "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:62: E231 missing whitespace after ','",
         "line": null,
         "tool": "flake8",
         "details": {}
@@ -331,7 +331,7 @@
       {
         "severity": "minor",
         "category": "style",
-        "message": "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:80: E501 line too long (103 > 79 characters)",
+        "message": "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py:6:80: E501 line too long (103 > 79 characters)",
         "line": null,
         "tool": "flake8",
         "details": {}
@@ -444,16 +444,16 @@
   },
   "import_smoke": {
     "evaluation_type": "import_smoke_test",
-    "file_path": "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
+    "file_path": "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
     "orchestrator": "airflow",
-    "timestamp": "2026-03-10T23:31:07.979335",
+    "timestamp": "2026-03-12T23:22:06.446631",
     "ok": true,
     "stages": {
       "compile_ok": true,
       "import_exec_ok": true
     },
     "metadata": {
-      "python": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/bin/python",
+      "python": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/bin/python",
       "python_version": "3.10.18",
       "smoke_env_flag": "PIPELINE_SMOKE_TEST=1",
       "carbon_tracking_requested": false,
@@ -462,14 +462,14 @@
     "error": null,
     "_subprocess": {
       "cmd": [
-        "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/bin/python",
+        "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/bin/python",
         "-m",
         "orcheval.import_smoke_test_cli",
-        "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
+        "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
         "--orchestrator",
         "airflow",
         "--out",
-        "generated_workflows_proof/airflow_ops_mix/airflow/template/orcheval_reports/pipeline.py.smoke_airflow.json",
+        "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/orcheval_reports/pipeline.py.smoke_airflow.json",
         "--carbon-measure-power-secs",
         "1",
         "--carbon-scale-factor",
@@ -481,17 +481,60 @@
       "returncode": 0,
       "timed_out": false,
       "stdout_tail": "",
-      "stderr_tail": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/lib/python3.10/site-packages/airflow/metrics/base_stats_logger.py:22 RemovedInAirflow3Warning: Timer and timing metrics publish in seconds were deprecated. It is enabled by default from Airflow 3 onwards. Enable timer_unit_consistency to publish all the timer and timing metrics in milliseconds.\n/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/lib/python3.10/site-packages/airflow/triggers/base.py:27 RemovedInAirflow3Warning: Timer and timing metrics publish in seconds were deprecated. It is enabled by default from Airflow 3 onwards. Enable timer_unit_consistency to publish all the timer and timing metrics in milliseconds.\n"
+      "stderr_tail": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/lib/python3.10/site-packages/airflow/metrics/base_stats_logger.py:22 RemovedInAirflow3Warning: Timer and timing metrics publish in seconds were deprecated. It is enabled by default from Airflow 3 onwards. Enable timer_unit_consistency to publish all the timer and timing metrics in milliseconds.\n/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/lib/python3.10/site-packages/airflow/triggers/base.py:27 RemovedInAirflow3Warning: Timer and timing metrics publish in seconds were deprecated. It is enabled by default from Airflow 3 onwards. Enable timer_unit_consistency to publish all the timer and timing metrics in milliseconds.\n"
     }
   },
   "platform_compliance": {
     "evaluation_type": "platform_compliance",
-    "file_path": "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
+    "file_path": "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
     "orchestrator": "airflow",
-    "timestamp": "2026-03-10T23:31:11.484040",
+    "timestamp": "2026-03-12T23:22:09.626673",
     "metadata": {
       "file_size_bytes": 731,
       "line_count": 16,
+      "knowledge_pack": {
+        "mode_selected": "pack",
+        "mode_effective": "pack",
+        "status": "resolved",
+        "applied": true,
+        "orchestrator": "airflow",
+        "orchestrator_version": "2.11.1",
+        "resolved_version": "2",
+        "pack_id": "orcheval-default",
+        "pack_version": "2026.03.0",
+        "schema_version": "1.0.0",
+        "pack_path": "/Users/abubakarialidu/orcheval/src/orcheval/knowledge_packs/default_pack_v1.json",
+        "source": "bundled",
+        "capabilities": {
+          "supports_taskflow": true,
+          "supports_classic_operators": true,
+          "supports_dag_test": true
+        },
+        "rule_params": {
+          "pct.airflow.minimum_structure.dag_tokens": [
+            "dag(",
+            "with dag",
+            "@dag"
+          ],
+          "pct.airflow.minimum_structure.task_tokens": [
+            "operator(",
+            "@task"
+          ],
+          "pct.airflow.dryrun.test_patterns": [
+            "test_mode=True",
+            "is_paused_upon_creation=True",
+            "dag.test()"
+          ],
+          "energy.rule.sensor_poke_mode.enabled": true,
+          "energy.rule.high_xcom_intensity.threshold": 10,
+          "energy.rule.high_frequency_heavy_compute.runs_per_year_threshold": 8760,
+          "energy.rule.large_fan_out.max_fan_out_threshold": 5,
+          "energy.rule.deep_sequential_chain.threshold": 0.8
+        },
+        "uncertainty": [],
+        "errors": []
+      },
+      "warnings": [],
       "PCT": 8.6,
       "platform_gate_passed": true,
       "Passed": true,
@@ -517,7 +560,45 @@
         "passed": true,
         "message": "Has minimum pipeline structure",
         "is_critical": true,
-        "details": {}
+        "details": {
+          "has_dag": true,
+          "has_tasks": true,
+          "dag_tokens": [
+            "dag(",
+            "with dag",
+            "@dag"
+          ],
+          "task_tokens": [
+            "operator(",
+            "@task"
+          ],
+          "provenance": {
+            "dag_tokens": {
+              "check_id": "pct.airflow.minimum_structure.dag_tokens",
+              "rule_source": "pack",
+              "capability_refs": [
+                "supports_classic_operators",
+                "supports_taskflow"
+              ],
+              "knowledge_pack_applied": true,
+              "resolution_status": "resolved",
+              "pack_id": "orcheval-default",
+              "pack_version": "2026.03.0"
+            },
+            "task_tokens": {
+              "check_id": "pct.airflow.minimum_structure.task_tokens",
+              "rule_source": "pack",
+              "capability_refs": [
+                "supports_classic_operators",
+                "supports_taskflow"
+              ],
+              "knowledge_pack_applied": true,
+              "resolution_status": "resolved",
+              "pack_id": "orcheval-default",
+              "pack_version": "2026.03.0"
+            }
+          }
+        }
       },
       {
         "name": "critical_imports",
@@ -552,7 +633,7 @@
               "task_1",
               "task_2"
             ],
-            "python_executable": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/bin/python",
+            "python_executable": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/bin/python",
             "python_version": "3.10.18",
             "sys_path_head": [
               "/Users/abubakarialidu/orcheval",
@@ -560,12 +641,12 @@
               "/Users/abubakarialidu/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python310.zip",
               "/Users/abubakarialidu/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python3.10",
               "/Users/abubakarialidu/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python3.10/lib-dynload",
-              "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/lib/python3.10/site-packages",
+              "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/lib/python3.10/site-packages",
               "/Users/abubakarialidu/orcheval/.airflow_home_eval/config",
               "/Users/abubakarialidu/orcheval/.airflow_home_eval/plugins",
               "/Users/abubakarialidu/orcheval/.airflow_home_eval/dags"
             ],
-            "temp_module_path": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/tmplldo2ao7.py",
+            "temp_module_path": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/tmp4bzcnl9u.py",
             "exception": null
           },
           "module_structure": {
@@ -695,7 +776,23 @@
           "dryrun": {
             "airflow_available": true,
             "can_test": true,
-            "has_test_mode": false
+            "has_test_mode": false,
+            "test_patterns": [
+              "test_mode=True",
+              "is_paused_upon_creation=True",
+              "dag.test()"
+            ],
+            "provenance": {
+              "check_id": "pct.airflow.dryrun.test_patterns",
+              "rule_source": "pack",
+              "capability_refs": [
+                "supports_dag_test"
+              ],
+              "knowledge_pack_applied": true,
+              "resolution_status": "resolved",
+              "pack_id": "orcheval-default",
+              "pack_version": "2026.03.0"
+            }
           },
           "runtime_safety": {
             "bare_except_count": 0
@@ -724,22 +821,24 @@
     ],
     "_subprocess": {
       "cmd": [
-        "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/bin/python",
+        "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/bin/python",
         "-m",
         "orcheval.platform_compliance.pct_cli",
-        "generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
+        "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py",
         "--orchestrator",
         "airflow",
         "--out",
-        "generated_workflows_proof/airflow_ops_mix/airflow/template/orcheval_reports/pipeline.py.pct_airflow.json"
+        "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/orcheval_reports/pipeline.py.pct_airflow.json",
+        "--knowledge-pack-mode",
+        "pack"
       ],
       "module_name": "orcheval.platform_compliance.pct_cli",
       "script_path": null,
       "cwd": "/Users/abubakarialidu/orcheval",
       "returncode": 0,
       "timed_out": false,
-      "stdout_tail": "[2026-03-10T23:31:11.483+0100] {pct_base.py:120} INFO - Running PCT (penalty-free) for airflow: generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py\nWrote: generated_workflows_proof/airflow_ops_mix/airflow/template/orcheval_reports/pipeline.py.pct_airflow.json\n",
-      "stderr_tail": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/lib/python3.10/site-packages/airflow/metrics/base_stats_logger.py:22 RemovedInAirflow3Warning: Timer and timing metrics publish in seconds were deprecated. It is enabled by default from Airflow 3 onwards. Enable timer_unit_consistency to publish all the timer and timing metrics in milliseconds.\n/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/lib/python3.10/site-packages/airflow/triggers/base.py:27 RemovedInAirflow3Warning: Timer and timing metrics publish in seconds were deprecated. It is enabled by default from Airflow 3 onwards. Enable timer_unit_consistency to publish all the timer and timing metrics in milliseconds.\n"
+      "stdout_tail": "[2026-03-12T23:22:09.625+0100] {pct_base.py:167} INFO - Running PCT (penalty-free) for airflow: /Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/pipeline.py\nWrote: /Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/orcheval_reports/pipeline.py.pct_airflow.json\n",
+      "stderr_tail": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/lib/python3.10/site-packages/airflow/metrics/base_stats_logger.py:22 RemovedInAirflow3Warning: Timer and timing metrics publish in seconds were deprecated. It is enabled by default from Airflow 3 onwards. Enable timer_unit_consistency to publish all the timer and timing metrics in milliseconds.\n/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/lib/python3.10/site-packages/airflow/triggers/base.py:27 RemovedInAirflow3Warning: Timer and timing metrics publish in seconds were deprecated. It is enabled by default from Airflow 3 onwards. Enable timer_unit_consistency to publish all the timer and timing metrics in milliseconds.\n"
     },
     "issue_summary": {
       "total": 1,
@@ -750,8 +849,200 @@
     },
     "overall_score": 8.6
   },
+  "energy_evaluation": {
+    "schema_version": "1.0.0",
+    "mode_selected": "synthetic",
+    "mode_used": "synthetic",
+    "data_source": "synthetic",
+    "attempted_modes": [
+      {
+        "mode": "synthetic",
+        "status": "success",
+        "reason": "ok",
+        "duration_s": 1.8497,
+        "next_mode": null,
+        "synthetic_info": {
+          "provider": "deepinfra",
+          "model": "Qwen/Qwen3-Next-80B-A3B-Instruct",
+          "seed": 1729,
+          "recipe_hash": "9f44cf4bbb53498a70ac575c66ed22f594ea8e6f285fdcf1f178faa4c9ae024a",
+          "signature_hash": "f166afab84b3f1c36dc1b5427722eda647dea69722fd7630ac9999d740f77654",
+          "recipe_source": "provider",
+          "recipe_schema_version": "1",
+          "row_count": 500,
+          "column_count": 8
+        }
+      }
+    ],
+    "runtime_measurement": {
+      "status": "ok",
+      "execution_adapter_requested": "representative",
+      "execution_adapter_used": "representative",
+      "adapter_attempts": [
+        {
+          "adapter": "representative",
+          "status": "success"
+        }
+      ],
+      "rows_processed": 500,
+      "tasks_exercised": 25,
+      "duration_s": 0.100659,
+      "numeric_accumulator": 217065950.609845,
+      "hash_accumulator": 2683545404,
+      "energy_profile": {
+        "tool": "codecarbon",
+        "available": false,
+        "python": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/bin/python",
+        "python_version": "3.10.18",
+        "platform": "macOS-15.6.1-arm64-arm-64bit",
+        "measurement_scope": "runtime_representative_workload",
+        "disclaimer": "This measurement covers a bounded representative workload used for comparative evaluation; it is not full production workflow runtime.",
+        "status": "not_started"
+      },
+      "normalized": {
+        "energy_kwh_per_1k_rows": null,
+        "emissions_kgco2eq_per_1k_rows": null
+      },
+      "bounds": {
+        "max_rows": 500,
+        "max_tasks": 25,
+        "seed": 1729
+      }
+    },
+    "synthetic_info": {
+      "provider": "deepinfra",
+      "model": "Qwen/Qwen3-Next-80B-A3B-Instruct",
+      "seed": 1729,
+      "recipe_hash": "9f44cf4bbb53498a70ac575c66ed22f594ea8e6f285fdcf1f178faa4c9ae024a",
+      "signature_hash": "f166afab84b3f1c36dc1b5427722eda647dea69722fd7630ac9999d740f77654",
+      "recipe_source": "provider",
+      "recipe_schema_version": "1",
+      "row_count": 500,
+      "column_count": 8
+    },
+    "privacy": {
+      "sample_data_persisted": false,
+      "raw_rows_persisted": false,
+      "llm_payload_mode": "minimized_spec_only",
+      "redaction_summary": [
+        "raw sample rows are not persisted",
+        "runtime payload stores only aggregate metrics",
+        "llm prompt includes minimized workflow spec only"
+      ]
+    },
+    "heuristic": {
+      "metrics": {
+        "total_tasks": 3,
+        "total_edges": 2,
+        "has_cycle": false,
+        "connected_components": 1,
+        "critical_path_length": 3,
+        "max_parallel_width": 1,
+        "parallelism_index": 0.3333333333333333,
+        "sequential_bottleneck_ratio": 1.0,
+        "max_fan_out": 1,
+        "avg_out_degree": 0.6666666666666666
+      },
+      "signals": {
+        "operator_tiers": {
+          "distribution": {
+            "light_compute": 3
+          },
+          "heavy_compute_count": 0,
+          "polling_heavy_count": 0
+        },
+        "xcom": {
+          "xcom_push_count": 0,
+          "xcom_pull_count": 0,
+          "xcomarg_count": 0,
+          "xcom_total_signals": 0
+        }
+      },
+      "rules": {
+        "rule_count": 0,
+        "rules": []
+      }
+    },
+    "errors": [],
+    "metadata": {
+      "orchestrator": "airflow",
+      "orchestrator_version": null,
+      "runtime_supported": true,
+      "signature_hash": "f166afab84b3f1c36dc1b5427722eda647dea69722fd7630ac9999d740f77654",
+      "seed": 1729,
+      "max_rows": 500,
+      "max_tasks": 25,
+      "execution_adapter_selected": "representative",
+      "knowledge_pack": {
+        "mode_selected": "pack",
+        "mode_effective": "pack",
+        "status": "unknown_version_conservative",
+        "applied": false,
+        "orchestrator": "airflow",
+        "orchestrator_version": null,
+        "resolved_version": null,
+        "pack_id": "orcheval-default",
+        "pack_version": "2026.03.0",
+        "schema_version": "1.0.0",
+        "pack_path": "/Users/abubakarialidu/orcheval/src/orcheval/knowledge_packs/default_pack_v1.json",
+        "source": "bundled",
+        "capabilities": {
+          "supports_taskflow": true,
+          "supports_classic_operators": true,
+          "supports_dag_test": true
+        },
+        "rule_params": {},
+        "uncertainty": [
+          {
+            "code": "unknown_orchestrator_version",
+            "severity": "major",
+            "message": "Orchestrator version is unknown to the pack; conservative core checks only.",
+            "detected_version": null
+          }
+        ],
+        "errors": []
+      },
+      "uncertainty": [
+        {
+          "code": "unknown_orchestrator_version",
+          "severity": "major",
+          "message": "Orchestrator version is unknown to the pack; conservative core checks only.",
+          "detected_version": null
+        }
+      ],
+      "warnings": [
+        {
+          "source": "knowledge_pack",
+          "code": "unknown_orchestrator_version",
+          "severity": "major",
+          "message": "Orchestrator version is unknown to the pack; conservative core checks only.",
+          "details": {
+            "code": "unknown_orchestrator_version",
+            "severity": "major",
+            "message": "Orchestrator version is unknown to the pack; conservative core checks only.",
+            "detected_version": null
+          }
+        }
+      ],
+      "total_duration_s": 1.8522
+    }
+  },
   "semantic_analysis": null,
   "error_events": [],
+  "warnings": [
+    {
+      "source": "knowledge_pack",
+      "code": "unknown_orchestrator_version",
+      "severity": "major",
+      "message": "Orchestrator version is unknown to the pack; conservative core checks only.",
+      "details": {
+        "code": "unknown_orchestrator_version",
+        "severity": "major",
+        "message": "Orchestrator version is unknown to the pack; conservative core checks only.",
+        "detected_version": null
+      }
+    }
+  ],
   "summary": {
     "static_score": 6.075,
     "compliance_score": 8.6,
@@ -778,26 +1069,30 @@
       "major": 0,
       "minor": 0,
       "info": 0
-    }
+    },
+    "energy_mode_used": "synthetic",
+    "energy_data_source": "synthetic",
+    "warnings_count": 1
   },
   "metadata": {
     "evaluation_context": {
       "target_orchestrator": "airflow",
       "detected_orchestrator": "airflow",
-      "orchestrator_source": "explicit_argument",
-      "controller_python": "/Users/abubakarialidu/orcheval/.venv/bin/python",
+      "orchestrator_source": "static_detection",
+      "orchestrator_version": null,
+      "controller_python": "/Users/abubakarialidu/orcheval/.venv/bin/python3",
       "controller_python_version": "3.10.18",
       "repo_root": "/Users/abubakarialidu/orcheval",
-      "artifacts_dir": "generated_workflows_proof/airflow_ops_mix/airflow/template/orcheval_reports",
+      "artifacts_dir": "/Users/abubakarialidu/orcheval/generated_workflows_proof/airflow_ops_mix/airflow/template/orcheval_reports",
       "pct_mode": "subprocess",
       "dry_run_ephemeral_venv": true,
       "dry_run_env": {
         "enabled": true,
         "ok": true,
         "orchestrator": "airflow",
-        "base_dir": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0",
-        "venv_dir": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv",
-        "python_exe": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/bin/python",
+        "base_dir": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til",
+        "venv_dir": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv",
+        "python_exe": "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/bin/python",
         "install_orcheval": true,
         "dependency_specs": [
           "apache-airflow~=2.8"
@@ -809,16 +1104,16 @@
           {
             "name": "create_venv",
             "cmd": [
-              "/Users/abubakarialidu/orcheval/.venv/bin/python",
+              "/Users/abubakarialidu/orcheval/.venv/bin/python3",
               "-m",
               "venv",
-              "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv"
+              "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv"
             ],
             "cwd": "/Users/abubakarialidu/orcheval",
             "timeout_s": 900,
             "returncode": 0,
             "timed_out": false,
-            "duration_s": 1.8334,
+            "duration_s": 2.0337,
             "stdout_tail": "",
             "stderr_tail": "",
             "ok": true
@@ -826,7 +1121,7 @@
           {
             "name": "upgrade_pip",
             "cmd": [
-              "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/bin/python",
+              "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/bin/python",
               "-m",
               "pip",
               "install",
@@ -839,15 +1134,15 @@
             "timeout_s": 900,
             "returncode": 0,
             "timed_out": false,
-            "duration_s": 1.8049,
-            "stdout_tail": "Requirement already satisfied: pip in /private/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/lib/python3.10/site-packages (23.0.1)\nCollecting pip\n  Using cached pip-26.0.1-py3-none-any.whl (1.8 MB)\nRequirement already satisfied: setuptools in /private/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/lib/python3.10/site-packages (65.5.0)\nCollecting setuptools\n  Using cached setuptools-82.0.1-py3-none-any.whl (1.0 MB)\nCollecting wheel\n  Using cached wheel-0.46.3-py3-none-any.whl (30 kB)\nCollecting packaging>=24.0\n  Using cached packaging-26.0-py3-none-any.whl (74 kB)\nInstalling collected packages: setuptools, pip, packaging, wheel\n  Attempting uninstall: setuptools\n    Found existing installation: setuptools 65.5.0\n    Uninstalling setuptools-65.5.0:\n      Successfully uninstalled setuptools-65.5.0\n  Attempting uninstall: pip\n    Found existing installation: pip 23.0.1\n    Uninstalling pip-23.0.1:\n      Successfully uninstalled pip-23.0.1\nSuccessfully installed packaging-26.0 pip-26.0.1 setuptools-82.0.1 wheel-0.46.3\n",
+            "duration_s": 1.7292,
+            "stdout_tail": "Requirement already satisfied: pip in /private/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/lib/python3.10/site-packages (23.0.1)\nCollecting pip\n  Using cached pip-26.0.1-py3-none-any.whl (1.8 MB)\nRequirement already satisfied: setuptools in /private/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/lib/python3.10/site-packages (65.5.0)\nCollecting setuptools\n  Using cached setuptools-82.0.1-py3-none-any.whl (1.0 MB)\nCollecting wheel\n  Using cached wheel-0.46.3-py3-none-any.whl (30 kB)\nCollecting packaging>=24.0\n  Using cached packaging-26.0-py3-none-any.whl (74 kB)\nInstalling collected packages: setuptools, pip, packaging, wheel\n  Attempting uninstall: setuptools\n    Found existing installation: setuptools 65.5.0\n    Uninstalling setuptools-65.5.0:\n      Successfully uninstalled setuptools-65.5.0\n  Attempting uninstall: pip\n    Found existing installation: pip 23.0.1\n    Uninstalling pip-23.0.1:\n      Successfully uninstalled pip-23.0.1\nSuccessfully installed packaging-26.0 pip-26.0.1 setuptools-82.0.1 wheel-0.46.3\n",
             "stderr_tail": "",
             "ok": true
           },
           {
             "name": "install_orcheval",
             "cmd": [
-              "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/bin/python",
+              "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/bin/python",
               "-m",
               "pip",
               "install",
@@ -858,15 +1153,15 @@
             "timeout_s": 900,
             "returncode": 0,
             "timed_out": false,
-            "duration_s": 1.3546,
-            "stdout_tail": "Obtaining file:///Users/abubakarialidu/orcheval\n  Installing build dependencies: started\n  Installing build dependencies: finished with status 'done'\n  Checking if build backend supports build_editable: started\n  Checking if build backend supports build_editable: finished with status 'done'\n  Getting requirements to build editable: started\n  Getting requirements to build editable: finished with status 'done'\n  Preparing editable metadata (pyproject.toml): started\n  Preparing editable metadata (pyproject.toml): finished with status 'done'\nBuilding wheels for collected packages: orcheval\n  Building editable for orcheval (pyproject.toml): started\n  Building editable for orcheval (pyproject.toml): finished with status 'done'\n  Created wheel for orcheval: filename=orcheval-0.1.0-0.editable-py3-none-any.whl size=11925 sha256=315630c67b4b900fc0cfb292d36456792e5f3f84d99b3ff59eeabe407da9430d\n  Stored in directory: /private/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/pip-ephem-wheel-cache-29g4ffru/wheels/d9/d3/5d/d0d4d00f95b572cb4408f996df0e27613be4bb989740d18c83\nSuccessfully built orcheval\nInstalling collected packages: orcheval\nSuccessfully installed orcheval-0.1.0\n",
+            "duration_s": 1.1964,
+            "stdout_tail": "Obtaining file:///Users/abubakarialidu/orcheval\n  Installing build dependencies: started\n  Installing build dependencies: finished with status 'done'\n  Checking if build backend supports build_editable: started\n  Checking if build backend supports build_editable: finished with status 'done'\n  Getting requirements to build editable: started\n  Getting requirements to build editable: finished with status 'done'\n  Preparing editable metadata (pyproject.toml): started\n  Preparing editable metadata (pyproject.toml): finished with status 'done'\nBuilding wheels for collected packages: orcheval\n  Building editable for orcheval (pyproject.toml): started\n  Building editable for orcheval (pyproject.toml): finished with status 'done'\n  Created wheel for orcheval: filename=orcheval-0.1.0-0.editable-py3-none-any.whl size=11873 sha256=98eb820f6a9234fd2b36536c331de697dc7b9a2b187f6962c3520ee70b1402b3\n  Stored in directory: /private/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/pip-ephem-wheel-cache-mjyeqpfa/wheels/d9/d3/5d/d0d4d00f95b572cb4408f996df0e27613be4bb989740d18c83\nSuccessfully built orcheval\nInstalling collected packages: orcheval\nSuccessfully installed orcheval-0.1.0\n",
             "stderr_tail": "",
             "ok": true
           },
           {
             "name": "install_dependencies",
             "cmd": [
-              "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_4ns32cx0/venv/bin/python",
+              "/var/folders/tj/464jl5ls75l9zfnpxmsx2lrh0000gn/T/orcheval_dryrun_lz065til/venv/bin/python",
               "-m",
               "pip",
               "install",
@@ -876,14 +1171,26 @@
             "timeout_s": 900,
             "returncode": 0,
             "timed_out": false,
-            "duration_s": 17.2418,
-            "stdout_tail": "hmallow-sqlalchemy-0.28.2 mdit-py-plugins-0.5.0 mdurl-0.1.2 methodtools-0.4.7 more-itertools-10.8.0 msgspec-0.20.0 multidict-6.7.1 opentelemetry-api-1.40.0 opentelemetry-exporter-otlp-1.40.0 opentelemetry-exporter-otlp-proto-common-1.40.0 opentelemetry-exporter-otlp-proto-grpc-1.40.0 opentelemetry-exporter-otlp-proto-http-1.40.0 opentelemetry-proto-1.40.0 opentelemetry-sdk-1.40.0 opentelemetry-semantic-conventions-0.61b0 ordered-set-4.1.0 pathspec-1.0.4 pendulum-3.2.0 pluggy-1.6.0 prison-0.2.1 propcache-0.4.1 protobuf-6.33.5 psutil-7.2.2 pycparser-3.0 pygments-2.19.2 pyjwt-2.11.0 python-daemon-3.1.2 python-dateutil-2.9.0.post0 python-multipart-0.0.22 python-nvd3-0.16.0 python-slugify-8.0.4 pytz-2026.1.post1 referencing-0.37.0 requests-2.32.5 requests-toolbelt-1.0.0 rfc3339-validator-0.1.4 rich-13.9.4 rich-argparse-1.7.2 rpds-py-0.30.0 setproctitle-1.3.7 six-1.17.0 sqlalchemy-1.4.54 sqlalchemy-jsonfield-1.0.2 sqlalchemy-utils-0.42.1 sqlparse-0.5.5 tabulate-0.10.0 tenacity-9.1.4 termcolor-3.3.0 text-unidecode-1.3 tomli-2.4.0 typing-extensions-4.15.0 tzdata-2025.3 uc-micro-py-2.0.0 universal-pathlib-0.2.6 urllib3-2.6.3 werkzeug-3.1.6 wirerope-1.0.0 wrapt-2.1.2 yarl-1.23.0 zipp-3.23.0\n",
+            "duration_s": 17.5218,
+            "stdout_tail": "hmallow-sqlalchemy-0.28.2 mdit-py-plugins-0.5.0 mdurl-0.1.2 methodtools-0.4.7 more-itertools-10.8.0 msgspec-0.20.0 multidict-6.7.1 opentelemetry-api-1.40.0 opentelemetry-exporter-otlp-1.40.0 opentelemetry-exporter-otlp-proto-common-1.40.0 opentelemetry-exporter-otlp-proto-grpc-1.40.0 opentelemetry-exporter-otlp-proto-http-1.40.0 opentelemetry-proto-1.40.0 opentelemetry-sdk-1.40.0 opentelemetry-semantic-conventions-0.61b0 ordered-set-4.1.0 pathspec-1.0.4 pendulum-3.2.0 pluggy-1.6.0 prison-0.2.1 propcache-0.4.1 protobuf-6.33.5 psutil-7.2.2 pycparser-3.0 pygments-2.19.2 pyjwt-2.12.0 python-daemon-3.1.2 python-dateutil-2.9.0.post0 python-multipart-0.0.22 python-nvd3-0.16.0 python-slugify-8.0.4 pytz-2026.1.post1 referencing-0.37.0 requests-2.32.5 requests-toolbelt-1.0.0 rfc3339-validator-0.1.4 rich-13.9.4 rich-argparse-1.7.2 rpds-py-0.30.0 setproctitle-1.3.7 six-1.17.0 sqlalchemy-1.4.54 sqlalchemy-jsonfield-1.0.2 sqlalchemy-utils-0.42.1 sqlparse-0.5.5 tabulate-0.10.0 tenacity-9.1.4 termcolor-3.3.0 text-unidecode-1.3 tomli-2.4.0 typing-extensions-4.15.0 tzdata-2025.3 uc-micro-py-2.0.0 universal-pathlib-0.2.6 urllib3-2.6.3 werkzeug-3.1.6 wirerope-1.0.0 wrapt-2.1.2 yarl-1.23.0 zipp-3.23.0\n",
             "stderr_tail": "",
             "ok": true
           }
         ],
         "cleaned_up": true
-      }
+      },
+      "energy_requested": true,
+      "knowledge_pack_mode": "pack",
+      "knowledge_pack": null,
+      "knowledge_pack_version": null,
+      "energy_mode_selected": "synthetic",
+      "energy_runtime_max_rows": 500,
+      "energy_runtime_max_tasks": 25,
+      "energy_runtime_timeout_s": 3600,
+      "energy_seed": 1729,
+      "energy_execution_adapter": "representative",
+      "llm_provider": "deepinfra",
+      "llm_model": "Qwen/Qwen3-Next-80B-A3B-Instruct"
     }
   }
 }

@@ -1,0 +1,60 @@
+{
+  "schema_version": "1",
+  "recipes": {
+    "f166afab84b3f1c36dc1b5427722eda647dea69722fd7630ac9999d740f77654": {
+      "signature_hash": "f166afab84b3f1c36dc1b5427722eda647dea69722fd7630ac9999d740f77654",
+      "provider": "deepinfra",
+      "model": "Qwen/Qwen3-Next-80B-A3B-Instruct",
+      "seed": 1729,
+      "template_version": "1",
+      "recipe_hash": "9f44cf4bbb53498a70ac575c66ed22f594ea8e6f285fdcf1f178faa4c9ae024a",
+      "recipe": {
+        "row_count": 500,
+        "columns": [
+          {
+            "name": "task_id",
+            "type": "int",
+            "example": null
+          },
+          {
+            "name": "duration_seconds",
+            "type": "float",
+            "example": null
+          },
+          {
+            "name": "memory_mb",
+            "type": "int",
+            "example": null
+          },
+          {
+            "name": "cpu_percent",
+            "type": "float",
+            "example": null
+          },
+          {
+            "name": "io_bytes",
+            "type": "int",
+            "example": null
+          },
+          {
+            "name": "success",
+            "type": "bool",
+            "example": null
+          },
+          {
+            "name": "tier",
+            "type": "str",
+            "example": null
+          },
+          {
+            "name": "timestamp",
+            "type": "date",
+            "example": null
+          }
+        ],
+        "schema_version": "1"
+      },
+      "updated_at": 1773354131.518471
+    }
+  }
+}
