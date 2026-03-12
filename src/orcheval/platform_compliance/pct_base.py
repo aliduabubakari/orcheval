@@ -52,6 +52,7 @@ from ..base_evaluator import (
 )
 from ..knowledge_pack import (
     KnowledgePackResolution,
+    resolution_warnings,
     resolve_knowledge_pack,
     resolve_rule_value,
 )
@@ -124,10 +125,11 @@ class BasePlatformComplianceTester(BaseEvaluator):
         pack_path = cfg.get("knowledge_pack")
         self.knowledge_pack = Path(pack_path) if pack_path else None
         self.knowledge_pack_version = cfg.get("knowledge_pack_version")
+        self.orchestrator_version = cfg.get("orchestrator_version")
         self._knowledge_pack_resolution: Optional[KnowledgePackResolution] = None
 
     def _get_orchestrator_runtime_version(self) -> Optional[str]:
-        return None
+        return str(self.orchestrator_version) if self.orchestrator_version else None
 
     def _resolve_knowledge_pack_context(self) -> KnowledgePackResolution:
         resolved = resolve_knowledge_pack(
@@ -189,6 +191,7 @@ class BasePlatformComplianceTester(BaseEvaluator):
                 "file_size_bytes": len(code.encode("utf-8")),
                 "line_count": len(code.splitlines()),
                 "knowledge_pack": kp.to_dict(),
+                "warnings": resolution_warnings(kp),
             },
         )
 
@@ -290,7 +293,7 @@ class BasePlatformComplianceTester(BaseEvaluator):
             file_path=str(file_path),
             orchestrator=self.ORCHESTRATOR,
             timestamp=datetime.now().isoformat(),
-            metadata={"error": error},
+            metadata={"error": error, "warnings": []},
         )
         result.gate_checks.append(GateCheckResult(
             name="file_readable",
@@ -310,7 +313,7 @@ class BasePlatformComplianceTester(BaseEvaluator):
             file_path=str(file_path),
             orchestrator=self.ORCHESTRATOR,
             timestamp=datetime.now().isoformat(),
-            metadata={"error": f"Syntax error at line {error.lineno}: {error.msg}"},
+            metadata={"error": f"Syntax error at line {error.lineno}: {error.msg}", "warnings": []},
         )
         result.gate_checks.append(GateCheckResult(
             name="syntax_valid",

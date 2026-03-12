@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Protocol, Tuple
 
 from ..base_evaluator import Orchestrator
-from ..knowledge_pack import detect_orchestrator_version, resolve_knowledge_pack
+from ..knowledge_pack import detect_orchestrator_version, resolution_warnings, resolve_knowledge_pack
 from ..subprocess_json_runner import run_cli_json
 from .design_rules import EcoDesignRuleEngine
 from .structural_energy_analyzer import StructuralEnergyAnalyzer
@@ -73,6 +73,7 @@ class EnergyEvaluationRequest:
     llm_base_url: Optional[str] = None
     llm_timeout_s: int = 30
     execution_adapter: str = "representative"
+    orchestrator_version: Optional[str] = None
     knowledge_pack_mode: str = "legacy"
     knowledge_pack: Optional[Path] = None
     knowledge_pack_version: Optional[str] = None
@@ -668,7 +669,7 @@ def evaluate_energy(request: EnergyEvaluationRequest) -> EnergyEvaluationResult:
     mode_used = "heuristic"
     data_source = "none"
 
-    orch_version = detect_orchestrator_version(
+    orch_version = request.orchestrator_version or detect_orchestrator_version(
         request.orchestrator,
         python_exe=request.runtime_python,
     )
@@ -962,6 +963,7 @@ def evaluate_energy(request: EnergyEvaluationRequest) -> EnergyEvaluationResult:
         "execution_adapter_selected": (request.execution_adapter or "representative"),
         "knowledge_pack": kp_resolution.to_dict(),
         "uncertainty": kp_resolution.uncertainty,
+        "warnings": resolution_warnings(kp_resolution),
         "total_duration_s": round(time.time() - started_all, 4),
     }
 

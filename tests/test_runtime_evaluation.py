@@ -54,6 +54,7 @@ def test_mode_precedence_auto_falls_to_heuristic_without_data_or_llm(tmp_path: P
     assert attempted[1]["mode"] == "synthetic"
     assert attempted[1]["status"] == "skipped"
     assert res["mode_used"] == "heuristic"
+    assert isinstance(res.get("metadata", {}).get("warnings"), list)
 
 
 def test_synthetic_rows_are_deterministic() -> None:

@@ -145,18 +145,38 @@ def validate_knowledge_pack(payload: Dict[str, Any]) -> None:
     _validate_pack(payload)
 
 
-def _match_version_key(version_map: Dict[str, Any], detected_version: Optional[str]) -> Optional[str]:
+def _parse_version_tuple(text: Optional[str]) -> Optional[Tuple[int, ...]]:
+    if not text:
+        return None
+    raw = str(text).strip()
+    if not raw:
+        return None
+    parts: List[int] = []
+    for tok in raw.split("."):
+        digits = ""
+        for ch in tok:
+            if ch.isdigit():
+                digits += ch
+            else:
+                break
+        if not digits:
+            break
+        parts.append(int(digits))
+    return tuple(parts) if parts else None
+
+
+def _match_version_key(version_map: Dict[str, Any], detected_version: Optional[str]) -> Tuple[Optional[str], str]:
     if not isinstance(version_map, dict):
-        return None
+        return None, "none"
     if not detected_version:
-        return None
+        return None, "none"
 
     v = str(detected_version).strip()
     if not v:
-        return None
+        return None, "none"
 
     if v in version_map:
-        return v
+        return v, "exact"
 
     parts = v.split(".")
     candidates: List[str] = []
@@ -167,9 +187,32 @@ def _match_version_key(version_map: Dict[str, Any], detected_version: Optional[s
 
     for c in candidates:
         if c in version_map:
-            return c
+            return c, "exact"
 
-    return None
+    # Approximate policy: same major, nearest known minor.
+    detected_tuple = _parse_version_tuple(v)
+    if detected_tuple and len(detected_tuple) >= 1:
+        detected_major = detected_tuple[0]
+        detected_minor = detected_tuple[1] if len(detected_tuple) >= 2 else 0
+        nearest_key: Optional[str] = None
+        nearest_distance: Optional[int] = None
+
+        for key in sorted(version_map.keys()):
+            parsed = _parse_version_tuple(key)
+            if not parsed:
+                continue
+            if parsed[0] != detected_major:
+                continue
+            key_minor = parsed[1] if len(parsed) >= 2 else 0
+            dist = abs(key_minor - detected_minor)
+            if nearest_distance is None or dist < nearest_distance:
+                nearest_key = key
+                nearest_distance = dist
+
+        if nearest_key is not None:
+            return nearest_key, "approximate"
+
+    return None, "none"
 
 
 def resolve_knowledge_pack(
@@ -240,7 +283,7 @@ def resolve_knowledge_pack(
 
     generic = _as_dict(orch_section.get("generic"))
     versions = _as_dict(orch_section.get("versions"))
-    matched_key = _match_version_key(versions, orchestrator_version)
+    matched_key, match_kind = _match_version_key(versions, orchestrator_version)
 
     if matched_key is None:
         return KnowledgePackResolution(
@@ -268,10 +311,23 @@ def resolve_knowledge_pack(
         )
 
     merged = _deep_merge(generic, _as_dict(versions.get(matched_key)))
+    uncertainty: List[Dict[str, Any]] = []
+    status = "resolved"
+    if match_kind == "approximate":
+        status = "resolved_approximate"
+        uncertainty.append(
+            {
+                "code": "approximate_version_match",
+                "severity": "minor",
+                "message": "Closest supported version was used for this orchestrator; results may be less accurate.",
+                "detected_version": orchestrator_version,
+                "resolved_version": matched_key,
+            }
+        )
     return KnowledgePackResolution(
         mode_selected=str(mode or "legacy"),
         mode_effective=mode_effective,
-        status="resolved",
+        status=status,
         applied=True,
         orchestrator=orch,
         orchestrator_version=orchestrator_version,
@@ -283,6 +339,7 @@ def resolve_knowledge_pack(
         source=source,
         capabilities=_as_dict(merged.get("capabilities")),
         rule_params=_as_dict(merged.get("rule_params")),
+        uncertainty=uncertainty,
     )
 
 
@@ -358,3 +415,22 @@ def detect_orchestrator_version(
         return out or None
     except Exception:
         return None
+
+
+def resolution_warnings(resolution: Optional[KnowledgePackResolution]) -> List[Dict[str, Any]]:
+    if resolution is None:
+        return []
+    warnings: List[Dict[str, Any]] = []
+    for item in list(resolution.uncertainty or []):
+        if not isinstance(item, dict):
+            continue
+        warnings.append(
+            {
+                "source": "knowledge_pack",
+                "code": str(item.get("code") or "knowledge_pack_warning"),
+                "severity": str(item.get("severity") or "info"),
+                "message": str(item.get("message") or ""),
+                "details": item,
+            }
+        )
+    return warnings

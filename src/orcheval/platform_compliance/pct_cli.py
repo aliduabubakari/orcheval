@@ -75,6 +75,7 @@ def main():
     parser.add_argument("--knowledge-pack", default=None, help="Path to local knowledge-pack JSON")
     parser.add_argument("--knowledge-pack-version", default=None, help="Expected knowledge-pack version")
     parser.add_argument("--knowledge-pack-mode", default="legacy", choices=["legacy", "pack", "auto"])
+    parser.add_argument("--orchestrator-version", default=None, help="Explicit orchestrator version override")
     parser.add_argument("--print-summary", action="store_true")
     parser.add_argument("--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"])
     args = parser.parse_args()
@@ -104,7 +105,7 @@ def main():
                 "timestamp": datetime.now().isoformat(),
                 "gates_passed": False,
                 "gate_checks": [],
-                "metadata": {"PCT": 0.0, "error": f"No tester for orchestrator={orch.value}"},
+                "metadata": {"PCT": 0.0, "error": f"No tester for orchestrator={orch.value}", "warnings": []},
                 "scores": {},
                 "issues": [],
             }
@@ -113,6 +114,7 @@ def main():
                 "knowledge_pack_mode": args.knowledge_pack_mode,
                 "knowledge_pack": args.knowledge_pack,
                 "knowledge_pack_version": args.knowledge_pack_version,
+                "orchestrator_version": args.orchestrator_version,
             }
             tester = TESTERS[orch](config=tester_cfg)
             result = tester.evaluate(file_path)
@@ -135,6 +137,7 @@ def main():
                 "stage": "pct_cli_exception",
                 "python": sys.executable,
                 "python_version": platform.python_version(),
+                "warnings": [],
             },
             "scores": {},
             "issues": [

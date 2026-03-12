@@ -72,7 +72,8 @@ class AirflowComplianceTester(BasePlatformComplianceTester):
     ORCHESTRATOR = Orchestrator.AIRFLOW
 
     def _get_orchestrator_runtime_version(self) -> str | None:
-        return AIRFLOW_VERSION
+        override = super()._get_orchestrator_runtime_version()
+        return override if override else AIRFLOW_VERSION
 
     def _evaluate_minimum_structure(self, code: str) -> Tuple[bool, Dict[str, Any]]:
         c = code or ""

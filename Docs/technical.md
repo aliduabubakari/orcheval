@@ -43,7 +43,7 @@ Historically, evaluator checks were mostly hard-coded. Version-specific behavior
 Resolver inputs:
 
 - orchestrator
-- detected orchestrator version
+- detected orchestrator version or explicit override (`--orchestrator-version`)
 - mode (`legacy|pack|auto`)
 - optional explicit pack path/version
 
@@ -61,6 +61,7 @@ Behavior:
 - `legacy`: bypass pack usage entirely
 - `pack`: require pack resolution; unknown versions degrade conservatively
 - `auto`: attempt pack; fall back to conservative core behavior when unresolved
+- approximate match policy: when exact version is unavailable, select closest version in the same major line and emit warnings
 
 No runtime web lookup is performed.
 
@@ -139,6 +140,7 @@ New flags:
 - `--knowledge-pack-mode legacy|pack|auto`
 - `--knowledge-pack PATH`
 - `--knowledge-pack-version VERSION`
+- `--orchestrator-version VERSION`
 
 Default remains `legacy` to preserve strict compatibility.
 

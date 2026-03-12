@@ -54,7 +54,8 @@ class PrefectComplianceTester(BasePlatformComplianceTester):
     ORCHESTRATOR = Orchestrator.PREFECT
 
     def _get_orchestrator_runtime_version(self) -> str | None:
-        return PREFECT_VERSION
+        override = super()._get_orchestrator_runtime_version()
+        return override if override else PREFECT_VERSION
 
     def _evaluate_minimum_structure(self, code: str) -> Tuple[bool, Dict[str, Any]]:
         flow_tokens, flow_prov = self._pack_rule(

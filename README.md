@@ -89,6 +89,7 @@ Pack-driven deterministic mode:
 ```bash
 orcheval-unified path/to/pipeline.py \
   --knowledge-pack-mode pack \
+  --orchestrator-version 2.8.3 \
   --knowledge-pack ./packs/default_pack_v1.json \
   --knowledge-pack-version 2026.03.0
 ```
@@ -98,6 +99,9 @@ Modes:
 - `legacy`: built-in evaluator behavior (default)
 - `pack`: use knowledge-pack parameters
 - `auto`: try pack resolution, then conservative fallback
+
+If `--orchestrator-version` is omitted, `orcheval` attempts runtime detection.
+If an exact version is unavailable in the pack, it uses the closest version in the same major line and emits warnings in report metadata.
 
 ## Dry-Run Ephemeral Venv
 
@@ -200,7 +204,7 @@ orcheval agent
 orcheval-sat path/to/generated_workflow.py --out-dir ./reports/sat
 orcheval-smoke path/to/generated_workflow.py --orchestrator airflow --out smoke.json
 orcheval-pct path/to/generated_workflow.py --orchestrator auto --out pct.json
-orcheval-pct path/to/generated_workflow.py --knowledge-pack-mode pack --knowledge-pack ./packs/default_pack_v1.json
+orcheval-pct path/to/generated_workflow.py --knowledge-pack-mode pack --orchestrator-version 2.8.3 --knowledge-pack ./packs/default_pack_v1.json
 ```
 
 ## Knowledge-Pack Update Utility

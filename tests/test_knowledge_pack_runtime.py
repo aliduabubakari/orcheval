@@ -66,6 +66,19 @@ def test_unknown_version_conservative_degrade() -> None:
     assert res.uncertainty
 
 
+def test_approximate_version_match_same_major() -> None:
+    res = resolve_knowledge_pack(
+        orchestrator="airflow",
+        orchestrator_version="2.9.4",
+        mode="pack",
+        pack_path=None,
+        pack_version=None,
+    )
+    assert res.applied is True
+    assert res.status in {"resolved", "resolved_approximate"}
+    assert res.resolved_version in {"2", "2.9", "2.8"}
+
+
 def test_pct_gate_and_dryrun_include_provenance(tmp_path: Path) -> None:
     wf = tmp_path / "wf.py"
     wf.write_text(SIMPLE_AIRFLOW, encoding="utf-8")
@@ -79,6 +92,7 @@ def test_pct_gate_and_dryrun_include_provenance(tmp_path: Path) -> None:
 
     kp = result.get("metadata", {}).get("knowledge_pack", {})
     assert kp.get("mode_effective") == "pack"
+    assert isinstance(result.get("metadata", {}).get("warnings"), list)
 
     gate = next(g for g in result.get("gate_checks", []) if g.get("name") == "minimum_structure")
     gate_prov = gate.get("details", {}).get("provenance", {}).get("dag_tokens", {})

@@ -580,6 +580,7 @@ class UnifiedEvaluator:
         dry_run_capture_freeze: bool = False,
         dry_run_log_tail_chars: int = 1200,
         include_generation_context: bool = False,
+        orchestrator_version: Optional[str] = None,
         knowledge_pack_mode: str = "legacy",
         knowledge_pack: Optional[Path] = None,
         knowledge_pack_version: Optional[str] = None,
@@ -625,6 +626,7 @@ class UnifiedEvaluator:
         self.dry_run_capture_freeze = bool(dry_run_capture_freeze)
         self.dry_run_log_tail_chars = int(dry_run_log_tail_chars)
         self.include_generation_context = bool(include_generation_context)
+        self.orchestrator_version = str(orchestrator_version) if orchestrator_version else None
         self.knowledge_pack_mode = (knowledge_pack_mode or "legacy").strip().lower()
         self.knowledge_pack = Path(knowledge_pack) if knowledge_pack else None
         self.knowledge_pack_version = knowledge_pack_version
@@ -857,6 +859,7 @@ class UnifiedEvaluator:
                 "--knowledge-pack-mode",
                 self.knowledge_pack_mode,
             ]
+            + (["--orchestrator-version", str(self.orchestrator_version)] if self.orchestrator_version else [])
             + (["--knowledge-pack", str(self.knowledge_pack)] if self.knowledge_pack else [])
             + (["--knowledge-pack-version", str(self.knowledge_pack_version)] if self.knowledge_pack_version else []),
             out_json=out_json,
@@ -1091,6 +1094,7 @@ class UnifiedEvaluator:
                         timeout_s=self.energy_timeout_s,
                         seed=self.energy_seed,
                         execution_adapter=self.energy_execution_adapter,
+                        orchestrator_version=self.orchestrator_version,
                         knowledge_pack_mode=self.knowledge_pack_mode,
                         knowledge_pack=self.knowledge_pack,
                         knowledge_pack_version=self.knowledge_pack_version,
@@ -1132,6 +1136,15 @@ class UnifiedEvaluator:
             pct_issues   = pct_payload.get("issues", []) if isinstance(pct_payload.get("issues"), list) else []
             paper_issues = sat_issues + pct_issues
             error_events = _extract_error_events(smoke_payload, pct_payload)
+            warnings: List[Dict[str, Any]] = []
+            pct_meta = _safe_dict(pct_payload.get("metadata")) if isinstance(pct_payload, dict) else {}
+            pct_warnings = pct_meta.get("warnings")
+            if isinstance(pct_warnings, list):
+                warnings.extend([w for w in pct_warnings if isinstance(w, dict)])
+            energy_meta = _safe_dict(_safe_dict(energy_payload).get("metadata")) if isinstance(energy_payload, dict) else {}
+            energy_warnings = energy_meta.get("warnings")
+            if isinstance(energy_warnings, list):
+                warnings.extend([w for w in energy_warnings if isinstance(w, dict)])
 
             unified: Dict[str, Any] = {
                 "schema_version": UNIFIED_SCHEMA_VERSION,
@@ -1149,6 +1162,7 @@ class UnifiedEvaluator:
                 "semantic_analysis":  None,
 
                 "error_events": error_events,
+                "warnings": warnings,
 
                 "summary": {
                     "static_score":     round(float(sat_value), 4),
@@ -1171,6 +1185,7 @@ class UnifiedEvaluator:
                     "semantic_issues": {"total": 0, "critical": 0, "major": 0, "minor": 0, "info": 0},
                     "energy_mode_used": _safe_dict(energy_payload).get("mode_used") if isinstance(energy_payload, dict) else None,
                     "energy_data_source": _safe_dict(energy_payload).get("data_source") if isinstance(energy_payload, dict) else None,
+                    "warnings_count": len(warnings),
                 },
 
                 "metadata": {
@@ -1178,6 +1193,7 @@ class UnifiedEvaluator:
                         "target_orchestrator":    target_orchestrator.value,
                         "detected_orchestrator":  detected_orchestrator.value if detected_orchestrator else "unknown",
                         "orchestrator_source":    orch_source,
+                        "orchestrator_version":   self.orchestrator_version,
                         "controller_python":      sys.executable,
                         "controller_python_version": platform.python_version(),
                         "repo_root":              str(self.repo_root),
@@ -1227,6 +1243,7 @@ class UnifiedEvaluator:
                 "platform_compliance":   None,
                 "energy_evaluation":     None,
                 "semantic_analysis":     None,
+                "warnings":              [],
                 "error_events": [{
                     "source":     "unified_evaluator",
                     "stage":      "crash",
@@ -1287,6 +1304,7 @@ def main():
     parser.add_argument("--dry-run-log-tail-chars", type=int, default=1200, help="Per-step stdout/stderr tail length recorded in dry-run metadata")
     parser.add_argument("--no-dry-run-install-orcheval", action="store_true", help="Do not install local orcheval package in dry-run venv")
     parser.add_argument("--include-generation-context", action="store_true", help="Include run_context/generation blocks in unified JSON")
+    parser.add_argument("--orchestrator-version", default=None, help="Explicit orchestrator version override")
     parser.add_argument("--knowledge-pack-mode", default="legacy", choices=["legacy", "pack", "auto"])
     parser.add_argument("--knowledge-pack", default=None, help="Path to local knowledge-pack JSON")
     parser.add_argument("--knowledge-pack-version", default=None, help="Expected knowledge-pack version")
@@ -1343,6 +1361,7 @@ def main():
         dry_run_capture_freeze=bool(args.dry_run_capture_freeze),
         dry_run_log_tail_chars=int(args.dry_run_log_tail_chars),
         include_generation_context=bool(args.include_generation_context),
+        orchestrator_version=args.orchestrator_version,
         knowledge_pack_mode=args.knowledge_pack_mode,
         knowledge_pack=Path(args.knowledge_pack) if args.knowledge_pack else None,
         knowledge_pack_version=args.knowledge_pack_version,

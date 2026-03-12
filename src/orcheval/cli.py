@@ -57,6 +57,7 @@ def main() -> None:
         dry_run_capture_freeze: bool = typer.Option(False, help="Capture pip freeze output in dry-run metadata"),
         dry_run_log_tail_chars: int = typer.Option(1200, help="Per-step stdout/stderr tail length in dry-run metadata"),
         include_generation_context: bool = typer.Option(False, help="Include run_context/generation blocks in unified JSON"),
+        orchestrator_version: Optional[str] = typer.Option(None, help="Explicit orchestrator version override"),
         knowledge_pack_mode: str = typer.Option("legacy", help="legacy|pack|auto"),
         knowledge_pack: Optional[str] = typer.Option(None, help="Path to local knowledge-pack JSON"),
         knowledge_pack_version: Optional[str] = typer.Option(None),
@@ -89,6 +90,7 @@ def main() -> None:
             dry_run_capture_freeze=bool(dry_run_capture_freeze),
             dry_run_log_tail_chars=int(dry_run_log_tail_chars),
             include_generation_context=bool(include_generation_context),
+            orchestrator_version=orchestrator_version,
             knowledge_pack_mode=knowledge_pack_mode,
             knowledge_pack=Path(knowledge_pack) if knowledge_pack else None,
             knowledge_pack_version=knowledge_pack_version,
@@ -250,6 +252,11 @@ def main() -> None:
         extra_parts: List[str] = []
         if mode in {"unified", "pct", "smoke"} and orchestrator != "auto":
             extra_parts.extend(["--orchestrator", orchestrator])
+
+        if mode in {"unified", "pct"}:
+            orch_version = typer.prompt("Orchestrator version (optional)", default="").strip()
+            if orch_version:
+                extra_parts.extend(["--orchestrator-version", orch_version])
 
         if mode == "unified":
             dry_run = typer.confirm("Use dry-run ephemeral venv?", default=True)
