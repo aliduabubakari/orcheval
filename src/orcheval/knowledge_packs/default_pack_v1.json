@@ -1,0 +1,119 @@
+{
+  "pack_id": "orcheval-default",
+  "pack_version": "2026.03.0",
+  "schema_version": "1.0.0",
+  "generated_at": "2026-03-12T00:00:00Z",
+  "sources_digest": {
+    "type": "curated",
+    "notes": "Baseline bundled deterministic pack"
+  },
+  "orchestrators": {
+    "airflow": {
+      "generic": {
+        "capabilities": {
+          "supports_taskflow": true,
+          "supports_classic_operators": true,
+          "supports_dag_test": true
+        },
+        "rule_params": {
+          "pct.airflow.minimum_structure.dag_tokens": [
+            "dag(",
+            "with dag",
+            "@dag"
+          ],
+          "pct.airflow.minimum_structure.task_tokens": [
+            "operator(",
+            "@task"
+          ],
+          "pct.airflow.dryrun.test_patterns": [
+            "test_mode=True",
+            "is_paused_upon_creation=True",
+            "dag.test()"
+          ],
+          "energy.rule.sensor_poke_mode.enabled": true,
+          "energy.rule.high_xcom_intensity.threshold": 10,
+          "energy.rule.high_frequency_heavy_compute.runs_per_year_threshold": 8760,
+          "energy.rule.large_fan_out.max_fan_out_threshold": 5,
+          "energy.rule.deep_sequential_chain.threshold": 0.8
+        }
+      },
+      "versions": {
+        "2": {
+          "capabilities": {
+            "supports_dag_test": true
+          }
+        }
+      }
+    },
+    "prefect": {
+      "generic": {
+        "capabilities": {
+          "supports_flow_task_decorators": true,
+          "supports_flow_runtime_invocation": true
+        },
+        "rule_params": {
+          "pct.prefect.minimum_structure.flow_tokens": [
+            "@flow"
+          ],
+          "pct.prefect.minimum_structure.task_tokens": [
+            "@task",
+            "def "
+          ],
+          "pct.prefect.dryrun.test_patterns": [
+            "flow(" ,
+            ".serve(",
+            "deployments"
+          ],
+          "energy.rule.sensor_poke_mode.enabled": true,
+          "energy.rule.high_xcom_intensity.threshold": 10,
+          "energy.rule.high_frequency_heavy_compute.runs_per_year_threshold": 8760,
+          "energy.rule.large_fan_out.max_fan_out_threshold": 5,
+          "energy.rule.deep_sequential_chain.threshold": 0.8
+        }
+      },
+      "versions": {
+        "2": {
+          "capabilities": {
+            "supports_flow_runtime_invocation": true
+          }
+        }
+      }
+    },
+    "dagster": {
+      "generic": {
+        "capabilities": {
+          "supports_job_graph": true,
+          "supports_asset_definitions": true,
+          "supports_execute_in_process": true
+        },
+        "rule_params": {
+          "pct.dagster.minimum_structure.job_tokens": [
+            "@job",
+            "@graph"
+          ],
+          "pct.dagster.minimum_structure.op_tokens": [
+            "@op",
+            "@asset"
+          ],
+          "pct.dagster.dryrun.test_patterns": [
+            "execute_in_process(",
+            "materialize(",
+            "Definitions"
+          ],
+          "energy.rule.sensor_poke_mode.enabled": true,
+          "energy.rule.high_xcom_intensity.threshold": 10,
+          "energy.rule.high_frequency_heavy_compute.runs_per_year_threshold": 8760,
+          "energy.rule.large_fan_out.max_fan_out_threshold": 5,
+          "energy.rule.deep_sequential_chain.threshold": 0.8
+        }
+      },
+      "versions": {
+        "1": {
+          "capabilities": {
+            "supports_execute_in_process": true
+          }
+        }
+      }
+    }
+  }
+}

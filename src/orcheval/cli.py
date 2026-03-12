@@ -57,6 +57,9 @@ def main() -> None:
         dry_run_capture_freeze: bool = typer.Option(False, help="Capture pip freeze output in dry-run metadata"),
         dry_run_log_tail_chars: int = typer.Option(1200, help="Per-step stdout/stderr tail length in dry-run metadata"),
         include_generation_context: bool = typer.Option(False, help="Include run_context/generation blocks in unified JSON"),
+        knowledge_pack_mode: str = typer.Option("legacy", help="legacy|pack|auto"),
+        knowledge_pack: Optional[str] = typer.Option(None, help="Path to local knowledge-pack JSON"),
+        knowledge_pack_version: Optional[str] = typer.Option(None),
         track_carbon: bool = typer.Option(False, help="Enable CodeCarbon during smoke stage"),
         carbon_scale_factor: float = typer.Option(1.0, help="Scale measured carbon values"),
         enable_energy_eval: bool = typer.Option(False, help="Enable service-ready runtime energy evaluation"),
@@ -86,6 +89,9 @@ def main() -> None:
             dry_run_capture_freeze=bool(dry_run_capture_freeze),
             dry_run_log_tail_chars=int(dry_run_log_tail_chars),
             include_generation_context=bool(include_generation_context),
+            knowledge_pack_mode=knowledge_pack_mode,
+            knowledge_pack=Path(knowledge_pack) if knowledge_pack else None,
+            knowledge_pack_version=knowledge_pack_version,
             track_carbon=track_carbon,
             carbon_scale_factor=float(carbon_scale_factor),
             enable_energy_evaluation=bool(enable_energy_eval),
@@ -261,6 +267,15 @@ def main() -> None:
                 include_ctx = typer.confirm("Include generation context blocks in JSON?", default=False)
                 if include_ctx:
                     extra_parts.append("--include-generation-context")
+                kp_mode = _choose("Knowledge-pack mode", ["legacy", "pack", "auto"], "legacy")
+                extra_parts.extend(["--knowledge-pack-mode", kp_mode])
+                if kp_mode in {"pack", "auto"}:
+                    kp_path = typer.prompt("Knowledge-pack path (optional)", default="").strip()
+                    if kp_path:
+                        extra_parts.extend(["--knowledge-pack", kp_path])
+                    kp_ver = typer.prompt("Knowledge-pack version (optional)", default="").strip()
+                    if kp_ver:
+                        extra_parts.extend(["--knowledge-pack-version", kp_ver])
 
             if not sat_only:
                 enable_energy = typer.confirm(
@@ -316,6 +331,17 @@ def main() -> None:
                             seed,
                         ]
                     )
+
+        if mode == "pct":
+            kp_mode = _choose("Knowledge-pack mode", ["legacy", "pack", "auto"], "legacy")
+            extra_parts.extend(["--knowledge-pack-mode", kp_mode])
+            if kp_mode in {"pack", "auto"}:
+                kp_path = typer.prompt("Knowledge-pack path (optional)", default="").strip()
+                if kp_path:
+                    extra_parts.extend(["--knowledge-pack", kp_path])
+                kp_ver = typer.prompt("Knowledge-pack version (optional)", default="").strip()
+                if kp_ver:
+                    extra_parts.extend(["--knowledge-pack-version", kp_ver])
 
         if mode == "smoke":
             track_carbon = typer.confirm("Enable carbon tracking?", default=False)

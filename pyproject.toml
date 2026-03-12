@@ -25,6 +25,7 @@ orcheval-smoke   = "orcheval.import_smoke_test_cli:main"
 orcheval-pct     = "orcheval.platform_compliance.pct_cli:main"
 orcheval-sat     = "orcheval.enhanced_static_analyzer:main"
 orcheval-compare = "orcheval.dag_comparator:main"
+orcheval-knowledge-pack-update = "orcheval.knowledge_pack_updater:main"
 orcheval         = "orcheval.cli:main"
 
 [tool.setuptools]
@@ -32,3 +33,6 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"orcheval" = ["knowledge_packs/*.json"]

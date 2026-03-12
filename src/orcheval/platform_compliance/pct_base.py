@@ -50,6 +50,11 @@ from ..base_evaluator import (
     Severity,
     Orchestrator,
 )
+from ..knowledge_pack import (
+    KnowledgePackResolution,
+    resolve_knowledge_pack,
+    resolve_rule_value,
+)
 
 
 def _mean(values: List[float]) -> float:
@@ -112,6 +117,46 @@ class BasePlatformComplianceTester(BaseEvaluator):
         "executability",
     ]
 
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        super().__init__(config=config)
+        cfg = self.config or {}
+        self.knowledge_pack_mode = str(cfg.get("knowledge_pack_mode", "legacy"))
+        pack_path = cfg.get("knowledge_pack")
+        self.knowledge_pack = Path(pack_path) if pack_path else None
+        self.knowledge_pack_version = cfg.get("knowledge_pack_version")
+        self._knowledge_pack_resolution: Optional[KnowledgePackResolution] = None
+
+    def _get_orchestrator_runtime_version(self) -> Optional[str]:
+        return None
+
+    def _resolve_knowledge_pack_context(self) -> KnowledgePackResolution:
+        resolved = resolve_knowledge_pack(
+            orchestrator=self.ORCHESTRATOR.value,
+            orchestrator_version=self._get_orchestrator_runtime_version(),
+            mode=self.knowledge_pack_mode,
+            pack_path=self.knowledge_pack,
+            pack_version=self.knowledge_pack_version,
+        )
+        self._knowledge_pack_resolution = resolved
+        return resolved
+
+    def _pack_rule(
+        self,
+        *,
+        check_id: str,
+        default: Any,
+        capability_refs: Optional[List[str]] = None,
+    ) -> Tuple[Any, Dict[str, Any]]:
+        return resolve_rule_value(
+            self._knowledge_pack_resolution,
+            check_id=check_id,
+            default=default,
+            capability_refs=capability_refs,
+        )
+
+    def _check_minimum_structure_details(self, code: str) -> Dict[str, Any]:
+        return {}
+
     # ---------------------------------------------------------------------
     # Main entry point
     # ---------------------------------------------------------------------
@@ -133,6 +178,8 @@ class BasePlatformComplianceTester(BaseEvaluator):
         except SyntaxError as e:
             return self._create_syntax_error_result(file_path, e)
 
+        kp = self._resolve_knowledge_pack_context()
+
         result = EvaluationResult(
             evaluation_type=self.EVALUATION_TYPE,
             file_path=str(file_path),
@@ -141,6 +188,7 @@ class BasePlatformComplianceTester(BaseEvaluator):
             metadata={
                 "file_size_bytes": len(code.encode("utf-8")),
                 "line_count": len(code.splitlines()),
+                "knowledge_pack": kp.to_dict(),
             },
         )
 
@@ -304,11 +352,13 @@ class BasePlatformComplianceTester(BaseEvaluator):
         # Gate: minimum structure (PATCH: guard exceptions)
         try:
             has_structure = self._check_minimum_structure(code)
+            gate_details = self._check_minimum_structure_details(code)
             gates.append(GateCheckResult(
                 name="minimum_structure",
                 passed=bool(has_structure),
                 message="Has minimum pipeline structure" if has_structure else "Missing basic pipeline structure",
                 is_critical=True,
+                details=gate_details if isinstance(gate_details, dict) else {},
             ))
         except Exception as e:
             det = _exception_details(stage="gate::minimum_structure", exc=e)

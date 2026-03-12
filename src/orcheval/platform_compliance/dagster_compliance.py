@@ -53,11 +53,47 @@ class DagsterComplianceTester(BasePlatformComplianceTester):
 
     ORCHESTRATOR = Orchestrator.DAGSTER
 
+    def _get_orchestrator_runtime_version(self) -> str | None:
+        return DAGSTER_VERSION
+
+    def _evaluate_minimum_structure(self, code: str) -> Tuple[bool, Dict[str, Any]]:
+        job_tokens, job_prov = self._pack_rule(
+            check_id="pct.dagster.minimum_structure.job_tokens",
+            default=["@job", "@graph"],
+            capability_refs=["supports_job_graph"],
+        )
+        op_tokens, op_prov = self._pack_rule(
+            check_id="pct.dagster.minimum_structure.op_tokens",
+            default=["@op", "@asset"],
+            capability_refs=["supports_asset_definitions"],
+        )
+
+        c = code or ""
+        cl = c.lower()
+        job_list = [str(t).lower() for t in (job_tokens if isinstance(job_tokens, list) else []) if str(t).strip()]
+        op_list = [str(t).lower() for t in (op_tokens if isinstance(op_tokens, list) else []) if str(t).strip()]
+        has_job = any(tok in cl for tok in job_list)
+        has_ops = any(tok in cl for tok in op_list)
+        details: Dict[str, Any] = {
+            "has_job": has_job,
+            "has_ops": has_ops,
+            "job_tokens": job_list,
+            "op_tokens": op_list,
+            "provenance": {
+                "job_tokens": job_prov,
+                "op_tokens": op_prov,
+            },
+        }
+        return bool(has_job and has_ops), details
+
     def _check_minimum_structure(self, code: str) -> bool:
         """Check if code has minimum Dagster structure."""
-        has_job = "@job" in code or "@graph" in code
-        has_ops = "@op" in code or "@asset" in code
-        return has_job and has_ops
+        ok, _details = self._evaluate_minimum_structure(code)
+        return ok
+
+    def _check_minimum_structure_details(self, code: str) -> Dict[str, Any]:
+        _ok, details = self._evaluate_minimum_structure(code)
+        return details
 
     # ═══════════════════════════════════════════════════════════════════════
     # LOADABILITY
@@ -466,9 +502,17 @@ class DagsterComplianceTester(BasePlatformComplianceTester):
     ) -> Tuple[float, List[Issue], Dict]:
         """Check Dagster execution capability."""
         issues = []
+        test_patterns, prov = self._pack_rule(
+            check_id="pct.dagster.dryrun.test_patterns",
+            default=["execute_in_process(", "@job"],
+            capability_refs=["supports_execute_in_process"],
+        )
+        pattern_list = [str(p) for p in (test_patterns if isinstance(test_patterns, list) else []) if str(p).strip()]
         details = {
             "dagster_available": DAGSTER_AVAILABLE,
             "can_execute_in_process": False,
+            "test_patterns": pattern_list,
+            "provenance": prov,
         }
 
         if not DAGSTER_AVAILABLE:
@@ -479,7 +523,7 @@ class DagsterComplianceTester(BasePlatformComplianceTester):
                 details={"dagster_available": False},
             )], details
 
-        if "execute_in_process" in code or "@job" in code:
+        if any(p in code for p in pattern_list):
             details["can_execute_in_process"] = True
             return 4.0, issues, details
 
