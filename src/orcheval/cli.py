@@ -190,90 +190,173 @@ def main() -> None:
     def agent_command(
         run: bool = typer.Option(False, "--run", help="Execute the generated command immediately"),
     ) -> None:
-        console.print("[bold]Orcheval Command Builder[/bold]")
-        mode = _choose(
-            "What do you want to run?",
-            ["unified", "sat", "pct", "smoke", "compare"],
-            "unified",
-        )
+        def _execute_or_restart(*, command_text: str, run_parts: List[str]) -> str:
+            console.print(Panel(command_text, title="Generated Command", expand=False))
+            if run:
+                if run_parts:
+                    rc = subprocess.run(run_parts, check=False).returncode
+                else:
+                    rc = subprocess.run(command_text, shell=True, check=False).returncode
+                raise typer.Exit(rc)
 
-        is_compare = mode == "compare"
-        if is_compare:
-            raw_inputs = typer.prompt("Provide workflow file/folder paths (space or comma separated)")
-            inputs = _split_paths(raw_inputs)
-            if len(inputs) < 1:
-                raise typer.BadParameter("At least one input path is required.")
-            recursive = typer.confirm("For folder inputs, scan recursively?", default=True)
+            should_run = typer.confirm("Run this command now?", default=True)
+            if should_run:
+                if run_parts:
+                    rc = subprocess.run(run_parts, check=False).returncode
+                else:
+                    rc = subprocess.run(command_text, shell=True, check=False).returncode
+                raise typer.Exit(rc)
+            console.print("[yellow]Command discarded. Restarting wizard...[/yellow]")
+            return "restart"
+
+        while True:
+            console.print("[bold]Orcheval Command Builder[/bold]")
+            mode = _choose(
+                "What do you want to run?",
+                ["unified", "sat", "pct", "smoke", "compare"],
+                "unified",
+            )
+
+            is_compare = mode == "compare"
+            if is_compare:
+                raw_inputs = typer.prompt("Provide workflow file/folder paths (space or comma separated)")
+                inputs = _split_paths(raw_inputs)
+                if len(inputs) < 1:
+                    raise typer.BadParameter("At least one input path is required.")
+                recursive = typer.confirm("For folder inputs, scan recursively?", default=True)
+                save_mode = _choose("Output mode", ["default", "out-dir", "out", "stdout"], "default")
+
+                cmd_parts = ["orcheval-compare"] + inputs
+                if not recursive:
+                    cmd_parts.append("--no-recursive")
+
+                if save_mode == "out-dir":
+                    out_dir = typer.prompt("Output directory path")
+                    cmd_parts.extend(["--out-dir", out_dir])
+                elif save_mode == "out":
+                    out = typer.prompt("Exact output JSON path")
+                    cmd_parts.extend(["--out", out])
+                elif save_mode == "stdout":
+                    cmd_parts.append("--stdout")
+
+                action = _execute_or_restart(command_text=_shell_join(cmd_parts), run_parts=cmd_parts)
+                if action == "restart":
+                    continue
+                return
+
+            input_mode = _choose("Input type", ["file", "folder"], "file")
+            target = typer.prompt("Path to workflow file or folder")
+            recursive = True
+            if input_mode == "folder":
+                recursive = typer.confirm("Scan folder recursively?", default=True)
+
+            cmd_map = {
+                "unified": "orcheval-unified",
+                "sat": "orcheval-sat",
+                "pct": "orcheval-pct",
+                "smoke": "orcheval-smoke",
+            }
+            base_cmd = cmd_map[mode]
+            cmd_parts = shlex.split(base_cmd)
+
+            if mode in {"unified", "pct", "smoke"}:
+                orchestrator = _choose("Target orchestrator", ["auto", "airflow", "prefect", "dagster"], "auto")
+            else:
+                orchestrator = "auto"
+
             save_mode = _choose("Output mode", ["default", "out-dir", "out", "stdout"], "default")
 
-            cmd_parts = ["orcheval-compare"] + inputs
-            if not recursive:
-                cmd_parts.append("--no-recursive")
+            extra_parts: List[str] = []
+            if mode in {"unified", "pct", "smoke"} and orchestrator != "auto":
+                extra_parts.extend(["--orchestrator", orchestrator])
 
-            if save_mode == "out-dir":
-                out_dir = typer.prompt("Output directory path")
-                cmd_parts.extend(["--out-dir", out_dir])
-            elif save_mode == "out":
-                out = typer.prompt("Exact output JSON path")
-                cmd_parts.extend(["--out", out])
-            elif save_mode == "stdout":
-                cmd_parts.append("--stdout")
+            if mode in {"unified", "pct"}:
+                orch_version = typer.prompt("Orchestrator version (optional)", default="").strip()
+                if orch_version:
+                    extra_parts.extend(["--orchestrator-version", orch_version])
 
-            command_text = _shell_join(cmd_parts)
-            console.print(Panel(command_text, title="Generated Command", expand=False))
+            if mode == "unified":
+                dry_run = typer.confirm("Use dry-run ephemeral venv?", default=True)
+                if dry_run:
+                    extra_parts.append("--dry-run-ephemeral-venv")
+                    use_constraint = typer.confirm("Use pip constraints file?", default=False)
+                    if use_constraint:
+                        cpath = typer.prompt("Constraints file path")
+                        extra_parts.extend(["--dry-run-pip-constraint", cpath])
+                sat_only = typer.confirm("SAT only (skip PCT/smoke and use SAT analyzer command)?", default=False)
+                if sat_only:
+                    cmd_parts = ["orcheval-sat"]
+                    extra_parts = []
+                else:
+                    include_ctx = typer.confirm("Include generation context blocks in JSON?", default=False)
+                    if include_ctx:
+                        extra_parts.append("--include-generation-context")
+                    kp_mode = _choose("Knowledge-pack mode", ["legacy", "pack", "auto"], "legacy")
+                    extra_parts.extend(["--knowledge-pack-mode", kp_mode])
+                    if kp_mode in {"pack", "auto"}:
+                        kp_path = typer.prompt("Knowledge-pack path (optional)", default="").strip()
+                        if kp_path:
+                            extra_parts.extend(["--knowledge-pack", kp_path])
+                        kp_ver = typer.prompt("Knowledge-pack version (optional)", default="").strip()
+                        if kp_ver:
+                            extra_parts.extend(["--knowledge-pack-version", kp_ver])
 
-            if run:
-                result = subprocess.run(cmd_parts, check=False)
-                raise typer.Exit(result.returncode)
-            return
+                if not sat_only:
+                    enable_energy = typer.confirm(
+                        "Enable runtime energy evaluation (sample/synthetic/heuristic fallback)?",
+                        default=False,
+                    )
+                    if enable_energy:
+                        extra_parts.append("--enable-energy-eval")
+                        emode = _choose("Energy mode", ["auto", "sample", "synthetic", "heuristic"], "auto")
+                        extra_parts.extend(["--energy-mode", emode])
+                        eadapter = _choose("Runtime adapter", ["representative", "native", "auto"], "representative")
+                        extra_parts.extend(["--energy-execution-adapter", eadapter])
 
-        input_mode = _choose("Input type", ["file", "folder"], "file")
-        target = typer.prompt("Path to workflow file or folder")
-        recursive = True
-        if input_mode == "folder":
-            recursive = typer.confirm("Scan folder recursively?", default=True)
+                        if emode in {"auto", "sample"}:
+                            sample_input = typer.prompt(
+                                "Sample data path(s) (optional, space/comma separated)",
+                                default="",
+                            ).strip()
+                            for p in _split_paths(sample_input):
+                                extra_parts.extend(["--energy-sample-path", p])
 
-        cmd_map = {
-            "unified": "orcheval-unified",
-            "sat": "orcheval-sat",
-            "pct": "orcheval-pct",
-            "smoke": "orcheval-smoke",
-        }
-        base_cmd = cmd_map[mode]
-        cmd_parts = shlex.split(base_cmd)
+                        if emode in {"auto", "synthetic"}:
+                            use_llm = typer.confirm("Configure LLM provider for synthetic mode?", default=False)
+                            if use_llm:
+                                provider = _choose(
+                                    "LLM provider",
+                                    ["openai", "anthropic", "openrouter", "deepinfra", "deepseek"],
+                                    "openai",
+                                )
+                                model = typer.prompt("LLM model")
+                                extra_parts.extend(["--llm-provider", provider, "--llm-model", model])
 
-        if mode in {"unified", "pct", "smoke"}:
-            orchestrator = _choose("Target orchestrator", ["auto", "airflow", "prefect", "dagster"], "auto")
-        else:
-            orchestrator = "auto"
+                                api_env = typer.prompt("API key env var name (optional)", default="").strip()
+                                if api_env:
+                                    extra_parts.extend(["--llm-api-key-env", api_env])
+                                base_url = typer.prompt("Custom base URL (optional)", default="").strip()
+                                if base_url:
+                                    extra_parts.extend(["--llm-base-url", base_url])
 
-        save_mode = _choose("Output mode", ["default", "out-dir", "out", "stdout"], "default")
+                        max_rows = typer.prompt("Energy max rows", default="500").strip()
+                        max_tasks = typer.prompt("Energy max tasks", default="25").strip()
+                        timeout_s = typer.prompt("Energy timeout seconds", default="120").strip()
+                        seed = typer.prompt("Energy deterministic seed", default="1729").strip()
+                        extra_parts.extend(
+                            [
+                                "--energy-max-rows",
+                                max_rows,
+                                "--energy-max-tasks",
+                                max_tasks,
+                                "--energy-timeout-s",
+                                timeout_s,
+                                "--energy-seed",
+                                seed,
+                            ]
+                        )
 
-        extra_parts: List[str] = []
-        if mode in {"unified", "pct", "smoke"} and orchestrator != "auto":
-            extra_parts.extend(["--orchestrator", orchestrator])
-
-        if mode in {"unified", "pct"}:
-            orch_version = typer.prompt("Orchestrator version (optional)", default="").strip()
-            if orch_version:
-                extra_parts.extend(["--orchestrator-version", orch_version])
-
-        if mode == "unified":
-            dry_run = typer.confirm("Use dry-run ephemeral venv?", default=True)
-            if dry_run:
-                extra_parts.append("--dry-run-ephemeral-venv")
-                use_constraint = typer.confirm("Use pip constraints file?", default=False)
-                if use_constraint:
-                    cpath = typer.prompt("Constraints file path")
-                    extra_parts.extend(["--dry-run-pip-constraint", cpath])
-            sat_only = typer.confirm("SAT only (skip PCT/smoke and use SAT analyzer command)?", default=False)
-            if sat_only:
-                cmd_parts = ["orcheval-sat"]
-                extra_parts = []
-            else:
-                include_ctx = typer.confirm("Include generation context blocks in JSON?", default=False)
-                if include_ctx:
-                    extra_parts.append("--include-generation-context")
+            if mode == "pct":
                 kp_mode = _choose("Knowledge-pack mode", ["legacy", "pack", "auto"], "legacy")
                 extra_parts.extend(["--knowledge-pack-mode", kp_mode])
                 if kp_mode in {"pack", "auto"}:
@@ -284,112 +367,42 @@ def main() -> None:
                     if kp_ver:
                         extra_parts.extend(["--knowledge-pack-version", kp_ver])
 
-            if not sat_only:
-                enable_energy = typer.confirm(
-                    "Enable runtime energy evaluation (sample/synthetic/heuristic fallback)?",
-                    default=False,
+            if mode == "smoke":
+                track_carbon = typer.confirm("Enable carbon tracking?", default=False)
+                if track_carbon:
+                    extra_parts.append("--track-carbon")
+                    scale = typer.prompt("Carbon scale factor", default="1.0")
+                    extra_parts.extend(["--carbon-scale-factor", scale])
+
+            if save_mode == "out-dir":
+                out_dir = typer.prompt("Output directory path")
+                extra_parts.extend(["--out-dir", out_dir])
+            elif save_mode == "out":
+                out = typer.prompt("Exact output JSON path")
+                extra_parts.extend(["--out", out])
+            elif save_mode == "stdout":
+                extra_parts.append("--stdout")
+
+            if input_mode == "file":
+                full_parts = cmd_parts + [target] + extra_parts
+                command_text = _shell_join(full_parts)
+                run_parts = full_parts
+            else:
+                depth_expr = "" if recursive else "-maxdepth 1 "
+                folder_q = shlex.quote(target)
+                prefix = _shell_join(cmd_parts)
+                suffix = _shell_join(extra_parts)
+                base_line = f'{prefix} "$f" {suffix}'.strip()
+                command_text = (
+                    f"find {folder_q} {depth_expr}-type f -name '*.py' -print0 | "
+                    f"while IFS= read -r -d '' f; do {base_line}; done"
                 )
-                if enable_energy:
-                    extra_parts.append("--enable-energy-eval")
-                    emode = _choose("Energy mode", ["auto", "sample", "synthetic", "heuristic"], "auto")
-                    extra_parts.extend(["--energy-mode", emode])
-                    eadapter = _choose("Runtime adapter", ["representative", "native", "auto"], "representative")
-                    extra_parts.extend(["--energy-execution-adapter", eadapter])
+                run_parts = []
 
-                    if emode in {"auto", "sample"}:
-                        sample_input = typer.prompt(
-                            "Sample data path(s) (optional, space/comma separated)",
-                            default="",
-                        ).strip()
-                        for p in _split_paths(sample_input):
-                            extra_parts.extend(["--energy-sample-path", p])
-
-                    if emode in {"auto", "synthetic"}:
-                        use_llm = typer.confirm("Configure LLM provider for synthetic mode?", default=False)
-                        if use_llm:
-                            provider = _choose(
-                                "LLM provider",
-                                ["openai", "anthropic", "openrouter", "deepinfra", "deepseek"],
-                                "openai",
-                            )
-                            model = typer.prompt("LLM model")
-                            extra_parts.extend(["--llm-provider", provider, "--llm-model", model])
-
-                            api_env = typer.prompt("API key env var name (optional)", default="").strip()
-                            if api_env:
-                                extra_parts.extend(["--llm-api-key-env", api_env])
-                            base_url = typer.prompt("Custom base URL (optional)", default="").strip()
-                            if base_url:
-                                extra_parts.extend(["--llm-base-url", base_url])
-
-                    max_rows = typer.prompt("Energy max rows", default="500").strip()
-                    max_tasks = typer.prompt("Energy max tasks", default="25").strip()
-                    timeout_s = typer.prompt("Energy timeout seconds", default="120").strip()
-                    seed = typer.prompt("Energy deterministic seed", default="1729").strip()
-                    extra_parts.extend(
-                        [
-                            "--energy-max-rows",
-                            max_rows,
-                            "--energy-max-tasks",
-                            max_tasks,
-                            "--energy-timeout-s",
-                            timeout_s,
-                            "--energy-seed",
-                            seed,
-                        ]
-                    )
-
-        if mode == "pct":
-            kp_mode = _choose("Knowledge-pack mode", ["legacy", "pack", "auto"], "legacy")
-            extra_parts.extend(["--knowledge-pack-mode", kp_mode])
-            if kp_mode in {"pack", "auto"}:
-                kp_path = typer.prompt("Knowledge-pack path (optional)", default="").strip()
-                if kp_path:
-                    extra_parts.extend(["--knowledge-pack", kp_path])
-                kp_ver = typer.prompt("Knowledge-pack version (optional)", default="").strip()
-                if kp_ver:
-                    extra_parts.extend(["--knowledge-pack-version", kp_ver])
-
-        if mode == "smoke":
-            track_carbon = typer.confirm("Enable carbon tracking?", default=False)
-            if track_carbon:
-                extra_parts.append("--track-carbon")
-                scale = typer.prompt("Carbon scale factor", default="1.0")
-                extra_parts.extend(["--carbon-scale-factor", scale])
-
-        if save_mode == "out-dir":
-            out_dir = typer.prompt("Output directory path")
-            extra_parts.extend(["--out-dir", out_dir])
-        elif save_mode == "out":
-            out = typer.prompt("Exact output JSON path")
-            extra_parts.extend(["--out", out])
-        elif save_mode == "stdout":
-            extra_parts.append("--stdout")
-
-        if input_mode == "file":
-            full_parts = cmd_parts + [target] + extra_parts
-            command_text = _shell_join(full_parts)
-            run_parts = full_parts
-        else:
-            depth_expr = "" if recursive else "-maxdepth 1 "
-            folder_q = shlex.quote(target)
-            prefix = _shell_join(cmd_parts)
-            suffix = _shell_join(extra_parts)
-            base_line = f'{prefix} "$f" {suffix}'.strip()
-            command_text = (
-                f"find {folder_q} {depth_expr}-type f -name '*.py' -print0 | "
-                f"while IFS= read -r -d '' f; do {base_line}; done"
-            )
-            run_parts = []
-
-        console.print(Panel(command_text, title="Generated Command", expand=False))
-
-        if run:
-            if run_parts:
-                result = subprocess.run(run_parts, check=False)
-                raise typer.Exit(result.returncode)
-            result = subprocess.run(command_text, shell=True, check=False)
-            raise typer.Exit(result.returncode)
+            action = _execute_or_restart(command_text=command_text, run_parts=run_parts)
+            if action == "restart":
+                continue
+            return
 
     app()
 
